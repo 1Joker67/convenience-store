@@ -1,0 +1,57 @@
+<!-- pages/orders/orders.wxml — 订单列表 -->
+<view class="page">
+  <!-- 状态筛选 -->
+  <view class="filter-bar">
+    <view
+      wx:for="{{statusOptions}}"
+      wx:key="value"
+      class="filter-item {{statusFilter === item.value ? 'active' : ''}}"
+      data-status="{{item.value}}"
+      bindtap="onFilterTap"
+    >
+      {{item.label}}
+    </view>
+  </view>
+
+  <!-- 订单列表 -->
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+
+  <view wx:elif="{{orders.length === 0}}" class="empty-state">
+    <text class="icon">📋</text>
+    <text class="text">暂无订单</text>
+  </view>
+
+  <view wx:else class="order-list">
+    <view
+      wx:for="{{orders}}"
+      wx:key="_id"
+      class="card order-card"
+      data-order="{{item}}"
+      bindtap="onOrderTap"
+    >
+      <view class="flex-between mb-10">
+        <text class="text-sm text-secondary">{{item.createdAt}}</text>
+        <text class="tag {{item.status === 'paid' ? 'tag-green' : item.status === 'cancelled' ? 'tag-gray' : 'tag-red'}}">
+          {{item.status === 'pending' ? '待支付' : item.status === 'paid' ? '已支付' : '已取消'}}
+        </text>
+      </view>
+
+      <view
+        wx:for="{{item.items}}"
+        wx:for-item="goods"
+        wx:key="productId"
+        class="order-goods"
+      >
+        <text class="text-ellipsis goods-name">{{goods.name}}</text>
+        <text class="text-sm text-secondary">×{{goods.quantity}}</text>
+        <text class="price text-sm">{{goods.price}}</text>
+      </view>
+
+      <view class="divider"></view>
+      <view class="flex-between">
+        <text class="text-sm text-secondary">共 {{item.items.length}} 件</text>
+        <text class="price">合计：{{item.totalAmount}}</text>
+      </view>
+    </view>
+  </view>
+</view>

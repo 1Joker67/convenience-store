@@ -1,0 +1,71 @@
+<!-- pages/index/index.wxml — 首页 -->
+<view class="page">
+  <!-- 顶部搜索栏 -->
+  <view class="search-bar" bindtap="onSearchTap">
+    <view class="search-input">
+      <text class="search-icon">🔍</text>
+      <text class="search-placeholder">搜索商品</text>
+    </view>
+  </view>
+
+  <!-- 主体：左分类 + 右商品 -->
+  <view class="main-content">
+    <!-- 左侧分类列表 -->
+    <scroll-view class="category-list" scroll-y>
+      <view
+        wx:for="{{categories}}"
+        wx:key="_id"
+        class="category-item {{activeCategoryId === item._id ? 'active' : ''}}"
+        data-id="{{item._id}}"
+        bindtap="onCategoryTap"
+      >
+        <text>{{item.name}}</text>
+        <view wx:if="{{activeCategoryId === item._id}}" class="active-bar"></view>
+      </view>
+    </scroll-view>
+
+    <!-- 右侧商品列表 -->
+    <scroll-view class="product-list" scroll-y>
+      <!-- 加载中 -->
+      <view wx:if="{{loading}}" class="loading">加载中...</view>
+
+      <!-- 商品网格 -->
+      <view wx:else class="product-grid">
+        <view
+          wx:for="{{products}}"
+          wx:key="_id"
+          class="product-card"
+        >
+          <image
+            wx:if="{{item.image}}"
+            src="{{item.image}}"
+            class="product-image"
+            mode="aspectFill"
+          />
+          <view wx:else class="product-image-placeholder">
+            <text>📦</text>
+          </view>
+          <view class="product-info">
+            <text class="product-name text-ellipsis">{{item.name}}</text>
+            <view class="product-bottom">
+              <text class="price">{{item.price}}</text>
+              <view
+                class="btn-add"
+                data-product="{{item}}"
+                bindtap="onAddToCart"
+              >
+                <text>+</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 空状态 -->
+      <view wx:if="{{!loading && products.length === 0}}" class="empty-state">
+        <text class="icon">📭</text>
+        <text class="text">该分类暂无商品</text>
+      </view>
+    </scroll-view>
+  </view>
+</view>

@@ -1,0 +1,61 @@
+<!-- pages/admin/orders/orders.wxml — 管理端订单管理 -->
+<view class="page">
+  <!-- 顶部操作栏 -->
+  <view class="header-bar">
+    <view class="flex-1">
+      <view
+        wx:for="{{['', 'pending', 'paid', 'cancelled']}}"
+        wx:for-item="s"
+        wx:key="*this"
+        class="filter-tag {{statusFilter === s ? 'active' : ''}}"
+        data-status="{{s}}"
+        bindtap="onFilterTap"
+      >
+        {{s === '' ? '全部' : s === 'pending' ? '待支付' : s === 'paid' ? '已支付' : '已取消'}}
+      </view>
+    </view>
+    <text class="logout-btn" bindtap="onLogout">退出</text>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+
+  <view wx:elif="{{orders.length === 0}}" class="empty-state">
+    <text class="icon">📋</text>
+    <text class="text">暂无订单</text>
+  </view>
+
+  <view wx:else class="order-list">
+    <view
+      wx:for="{{orders}}"
+      wx:key="_id"
+      class="card order-card"
+      data-order="{{item}}"
+      bindtap="onOrderTap"
+    >
+      <view class="flex-between mb-10">
+        <view>
+          <image wx:if="{{item.userInfo.avatarUrl}}" src="{{item.userInfo.avatarUrl}}" class="avatar" />
+          <text class="text-sm">{{item.userInfo.nickName || '未知用户'}}</text>
+        </view>
+        <text class="tag {{item.status === 'paid' ? 'tag-green' : item.status === 'cancelled' ? 'tag-gray' : 'tag-red'}}">
+          {{item.status === 'pending' ? '待支付' : item.status === 'paid' ? '已支付' : '已取消'}}
+        </text>
+      </view>
+
+      <view wx:for="{{item.items}}" wx:for-item="goods" wx:key="productId" class="goods-row">
+        <text class="flex-1 text-sm text-ellipsis">{{goods.name}} ×{{goods.quantity}}</text>
+        <text class="price text-sm">¥{{goods.price * goods.quantity}}</text>
+      </view>
+
+      <view class="divider"></view>
+      <view class="flex-between">
+        <text class="text-sm text-secondary">{{item.createdAt}}</text>
+        <text class="price">¥{{item.totalAmount}}</text>
+      </view>
+
+      <view class="contact-info">
+        <text class="text-sm text-secondary">📞 {{item.phone}}  📍 {{item.address}}</text>
+      </view>
+    </view>
+  </view>
+</view>

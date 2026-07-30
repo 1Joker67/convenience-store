@@ -1,0 +1,63 @@
+<!-- pages/search/search.wxml — 搜索商品 -->
+<view class="page">
+  <!-- 搜索栏 -->
+  <view class="search-header">
+    <view class="search-box">
+      <text class="search-icon">🔍</text>
+      <input
+        class="search-input"
+        placeholder="搜索商品名称"
+        value="{{keyword}}"
+        bindinput="onInput"
+        bindconfirm="onConfirm"
+        placeholder-class="placeholder"
+        focus
+      />
+      <view wx:if="{{keyword}}" class="clear-btn" bindtap="onClear">✕</view>
+    </view>
+    <text class="search-btn" bindtap="onSearch">搜索</text>
+  </view>
+
+  <!-- 搜索结果 -->
+  <view wx:if="{{loading}}" class="loading">搜索中...</view>
+
+  <view wx:elif="{{searched}}">
+    <view wx:if="{{products.length === 0}}" class="empty-state">
+      <text class="icon">🔍</text>
+      <text class="text">未找到相关商品</text>
+    </view>
+
+    <view wx:else class="product-list">
+      <view
+        wx:for="{{products}}"
+        wx:key="_id"
+        class="product-item"
+      >
+        <image
+          wx:if="{{item.image}}"
+          src="{{item.image}}"
+          class="item-image"
+          mode="aspectFill"
+        />
+        <view wx:else class="item-image-placeholder">📦</view>
+        <view class="item-info">
+          <text class="item-name">{{item.name}}</text>
+          <text class="price text-lg">{{item.price}}</text>
+        </view>
+        <view
+          class="btn-add"
+          data-product="{{item}}"
+          bindtap="onAddToCart"
+        >
+          <text>+</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 未搜索时 -->
+  <view wx:else class="empty-state">
+    <text class="icon">🔍</text>
+    <text class="text">输入关键词搜索商品</text>
+  </view>
+</view>

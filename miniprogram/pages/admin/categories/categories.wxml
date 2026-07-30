@@ -1,0 +1,52 @@
+<!-- pages/admin/categories/categories.wxml — 分类管理 -->
+<view class="page">
+  <view wx:if="{{!showForm}}">
+    <view class="header-bar">
+      <text class="title">分类列表（{{categories.length}}）</text>
+      <view class="btn btn-small btn-primary" bindtap="onAdd">添加分类</view>
+    </view>
+
+    <view wx:if="{{loading}}" class="loading">加载中...</view>
+
+    <view wx:elif="{{categories.length === 0}}" class="empty-state">
+      <text class="icon">📂</text>
+      <text class="text">暂无分类，请添加</text>
+    </view>
+
+    <view wx:else class="category-list">
+      <view
+        wx:for="{{categories}}"
+        wx:key="_id"
+        class="card category-item"
+      >
+        <text class="cat-name">{{item.name}}</text>
+        <view class="actions">
+          <text class="action-btn" data-category="{{item}}" bindtap="onEdit">编辑</text>
+          <text class="action-btn danger" data-category="{{item}}" bindtap="onDelete">删除</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 添加/编辑表单 -->
+  <view wx:if="{{showForm}}" class="form-page">
+    <view class="form-header">
+      <text bindtap="onCancel">取消</text>
+      <text class="form-title">{{editMode ? '编辑分类' : '添加分类'}}</text>
+      <text class="text-primary" bindtap="onSubmit">保存</text>
+    </view>
+
+    <view class="form-body">
+      <view class="form-item">
+        <text class="label">分类名称</text>
+        <input
+          class="input"
+          placeholder="请输入分类名称"
+          value="{{formName}}"
+          bindinput="onInput"
+          focus
+        />
+      </view>
+    </view>
+  </view>
+</view>
