@@ -132,7 +132,12 @@ Page({
       }
     } catch (err) {
       console.error('下单失败:', err);
-      wx.showToast({ title: '下单失败，请重试', icon: 'none' });
+      const msg = err.errMsg || err.message || '';
+      if (msg.includes('cancel') || msg.includes('deny') || msg.includes('拒绝')) {
+        wx.showToast({ title: '请先授权登录后再下单', icon: 'none' });
+      } else {
+        wx.showToast({ title: '下单失败，请重试', icon: 'none' });
+      }
     } finally {
       this.setData({ submitting: false });
     }

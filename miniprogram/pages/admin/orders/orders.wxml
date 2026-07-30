@@ -44,13 +44,13 @@
 
       <view wx:for="{{item.items}}" wx:for-item="goods" wx:key="productId" class="goods-row">
         <text class="flex-1 text-sm text-ellipsis">{{goods.name}} ×{{goods.quantity}}</text>
-        <text class="price text-sm">¥{{goods.price * goods.quantity}}</text>
+        <text class="price text-sm">{{goods.price * goods.quantity}}</text>
       </view>
 
       <view class="divider"></view>
       <view class="flex-between">
         <text class="text-sm text-secondary">{{item.createdAt}}</text>
-        <text class="price">¥{{item.totalAmount}}</text>
+        <text class="price">{{item.totalAmount}}</text>
       </view>
 
       <view class="contact-info">

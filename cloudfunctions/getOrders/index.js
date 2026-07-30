@@ -3,22 +3,30 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 
+// 检查当前用户是否为管理员
+async function checkAdmin(openid) {
+  const res = await db.collection('users').where({ openid }).get();
+  return res.data.length > 0 && res.data[0].role === 'admin';
+}
+
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
-  const { status, isAdmin, pageSize = 50, page = 1 } = event;
+  const { status, pageSize = 50, page = 1 } = event;
+  const safePage = Math.max(1, page);
+  const safeSize = Math.min(pageSize, 50);
+
   try {
-    // 构建查询条件（合并到单个 where 对象中）
+    const isAdmin = await checkAdmin(OPENID);
+
     const condition = {};
     if (!isAdmin) condition.userId = OPENID;
     if (status) condition.status = status;
 
-    const skip = (page - 1) * pageSize;
+    const skip = (safePage - 1) * safeSize;
     const query = db.collection('orders');
-
-    // 如果无条件则查全部，否则加 where
     const result = Object.keys(condition).length > 0
-      ? await query.where(condition).orderBy('createdAt', 'desc').skip(skip).limit(pageSize).get()
-      : await query.orderBy('createdAt', 'desc').skip(skip).limit(pageSize).get();
+      ? await query.where(condition).orderBy('createdAt', 'desc').skip(skip).limit(safeSize).get()
+      : await query.orderBy('createdAt', 'desc').skip(skip).limit(safeSize).get();
 
     return { success: true, data: result.data };
   } catch (err) {

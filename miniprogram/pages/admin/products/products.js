@@ -87,12 +87,12 @@ Page({
 
   // 上传图片
   onUploadImage() {
-    wx.chooseMedia({
+    wx.chooseImage({
       count: 1,
-      mediaType: ['image'],
+      sizeType: ['compressed'],
       sourceType: ['album', 'camera'],
       success: (res) => {
-        const tempPath = res.tempFiles[0].tempFilePath;
+        const tempPath = res.tempFilePaths[0];
         wx.showLoading({ title: '上传中...' });
         wx.cloud.uploadFile({
           cloudPath: `product-images/${Date.now()}.jpg`,

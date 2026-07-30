@@ -45,7 +45,7 @@
     "condition": false
   },
   "compileType": "miniprogram",
-  "libVersion": "3.6.0",
+  "libVersion": "3.17.0",
   "appid": "wx16eb9ed2c220b5d0",
   "projectname": "convenience-store",
   "condition": {},

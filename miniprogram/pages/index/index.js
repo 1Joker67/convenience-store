@@ -34,11 +34,10 @@ Page({
         this.loadProducts(categories[0]._id);
       }
     } catch (err) {
+      console.error('加载分类失败:', err);
+      wx.showToast({ title: '加载失败，请下拉刷新', icon: 'none' });
       this.setData({ loading: false });
     }
-  },
-
-  // 加载商品
   async loadProducts(categoryId) {
     try {
       this.setData({ loading: true });
@@ -48,11 +47,10 @@ Page({
         loading: false
       });
     } catch (err) {
+      console.error('加载商品失败:', err);
+      wx.showToast({ title: '加载失败', icon: 'none' });
       this.setData({ loading: false });
     }
-  },
-
-  // 切换分类
   onCategoryTap(e) {
     const categoryId = e.currentTarget.dataset.id;
     this.setData({ activeCategoryId: categoryId });

@@ -1,7 +1,6 @@
 // app.js — 便利店下单小程序入口
 App({
   onLaunch() {
-    // 初始化云开发
     if (!wx.cloud) {
       console.error('请使用 2.2.3 或以上的基础库以使用云能力');
       return;
@@ -12,68 +11,89 @@ App({
       traceUser: true
     });
 
-    // 检查登录态
+    // 检查本地登录缓存
     this.checkLogin();
   },
 
-  // 全局数据
   globalData: {
-    userInfo: null,       // 微信用户信息
-    userId: null,         // openid
-    isAdmin: false,       // 是否管理员
-    adminLoggedIn: false  // 管理端是否已登录
+    userInfo: null,
+    userId: null,
+    isAdmin: false,
+    adminLoggedIn: false
   },
 
-  // 检查用户登录态
+  // 检查本地缓存登录态
   checkLogin() {
     const userInfo = wx.getStorageSync('userInfo');
     const userId = wx.getStorageSync('userId');
-
     if (userInfo && userId) {
       this.globalData.userInfo = userInfo;
       this.globalData.userId = userId;
     }
   },
 
-  // 微信授权登录
-  async wxLogin() {
+  // 静默登录（获取 openid，不弹授权框）
+  async silentLogin() {
     return new Promise((resolve, reject) => {
-      wx.getUserProfile({
-        desc: '用于显示您的昵称和头像',
-        success: async (res) => {
-          const userInfo = res.userInfo;
-
+      wx.login({
+        success: async (loginRes) => {
           try {
-            // 调用云函数获取 openid
             const result = await wx.cloud.callFunction({
               name: 'login',
               data: {
-                nickName: userInfo.nickName,
-                avatarUrl: userInfo.avatarUrl
+                nickName: '微信用户',
+                avatarUrl: ''
               }
             });
 
-            const { openid, userId } = result.result;
-
-            this.globalData.userInfo = userInfo;
+            const { openid, role } = result.result;
             this.globalData.userId = openid;
+            this.globalData.userInfo = this.globalData.userInfo || {
+              nickName: '微信用户',
+              avatarUrl: ''
+            };
 
-            // 本地缓存
-            wx.setStorageSync('userInfo', userInfo);
             wx.setStorageSync('userId', openid);
+            wx.setStorageSync('userInfo', this.globalData.userInfo);
 
-            resolve({ userInfo, openid });
+            resolve({ userInfo: this.globalData.userInfo, openid, role });
           } catch (err) {
-            console.error('登录云函数调用失败:', err);
+            console.error('登录失败:', err);
             reject(err);
           }
         },
-        fail: (err) => {
-          console.error('用户拒绝授权:', err);
-          reject(err);
-        }
+        fail: reject
       });
     });
+  },
+
+  // 获取用户头像昵称（需用户点击按钮触发）
+  async getUserProfile() {
+    return new Promise((resolve, reject) => {
+      wx.getUserProfile({
+        desc: '用于显示您的昵称和头像',
+        success: (res) => {
+          this.globalData.userInfo = res.userInfo;
+          wx.setStorageSync('userInfo', res.userInfo);
+          resolve(res.userInfo);
+        },
+        fail: reject
+      });
+    });
+  },
+
+  // 更新用户信息到云端
+  async updateUserInfo(nickName, avatarUrl) {
+    try {
+      this.globalData.userInfo = { nickName, avatarUrl };
+      wx.setStorageSync('userInfo', { nickName, avatarUrl });
+      await wx.cloud.callFunction({
+        name: 'login',
+        data: { nickName, avatarUrl }
+      });
+    } catch (err) {
+      console.error('更新用户信息失败:', err);
+    }
   },
 
   // 管理员登录
