@@ -8,8 +8,10 @@ Page({
     categories: [],
     loading: true,
     showForm: false,
-    editMode: false,       // false=添加, true=编辑
+    editMode: false,
     editId: '',
+    filterCategoryId: '',     // 从分类页传入的筛选
+    filterCategoryName: '',
     form: {
       name: '',
       price: '',
@@ -19,9 +21,19 @@ Page({
     }
   },
 
+  onLoad(options) {
+    if (options.categoryId) {
+      this.setData({
+        filterCategoryId: options.categoryId,
+        filterCategoryName: options.categoryName || ''
+      });
+      wx.setNavigationBarTitle({ title: options.categoryName + ' - 商品' });
+    }
+  },
+
   onShow() {
     if (!auth.isAdminLoggedIn()) {
-      wx.redirectTo({ url: '/pages/admin/login/login' });
+      wx.switchTab({ url: '/pages/admin/login/login' });
       return;
     }
     this.loadData();
@@ -34,11 +46,20 @@ Page({
         api.manageProduct('list'),
         api.manageCategory('list')
       ]);
+      // 如果有筛选分类，过滤商品
+      let products = productRes.data || [];
+      if (this.data.filterCategoryId) {
+        products = products.filter(p => p.categoryId === this.data.filterCategoryId);
+      }
       this.setData({
-        products: productRes.data || [],
+        products,
         categories: categoryRes.data || [],
         loading: false
       });
+      // 添加表单默认使用筛选分类
+      if (this.data.filterCategoryId && !this.data.form.categoryId) {
+        this.setData({ 'form.categoryId': this.data.filterCategoryId });
+      }
     } catch (err) {
       this.setData({ loading: false });
     }
@@ -57,10 +78,12 @@ Page({
   // 显示编辑表单
   onEdit(e) {
     const product = e.currentTarget.dataset.product;
+    const cat = this.data.categories.find(c => c._id === product.categoryId);
     this.setData({
       showForm: true,
       editMode: true,
       editId: product._id,
+      selectedCategoryName: cat?.name || '',
       form: {
         name: product.name,
         price: String(product.price),
@@ -79,7 +102,12 @@ Page({
     this.setData({ 'form.price': e.detail.value });
   },
   onCategoryChange(e) {
-    this.setData({ 'form.categoryId': this.data.categories[e.detail.value]?._id || '' });
+    const idx = e.detail.value;
+    const cat = this.data.categories[idx];
+    this.setData({
+      'form.categoryId': cat?._id || '',
+      selectedCategoryName: cat?.name || ''
+    });
   },
   onStatusChange(e) {
     this.setData({ 'form.status': e.detail.value });
@@ -141,10 +169,14 @@ Page({
         data.productId = this.data.editId;
       }
 
-      await api.manageProduct(action, data);
-      wx.showToast({ title: this.data.editMode ? '修改成功' : '添加成功', icon: 'success' });
-      this.setData({ showForm: false });
-      this.loadData();
+      const result = await api.manageProduct(action, data);
+      if (result.success) {
+        wx.showToast({ title: this.data.editMode ? '修改成功' : '添加成功', icon: 'success' });
+        this.setData({ showForm: false });
+        this.loadData();
+      } else {
+        wx.showToast({ title: result.error || '操作失败', icon: 'none' });
+      }
     } catch (err) {
       wx.showToast({ title: '操作失败', icon: 'none' });
     }
@@ -173,5 +205,43 @@ Page({
   // 取消
   onCancel() {
     this.setData({ showForm: false });
+  },
+
+  // 切换分类筛选
+  onSwitchCategory(e) {
+    const idx = e.detail.value;
+    const cat = this.data.categories[idx];
+    if (cat) {
+      this.setData({
+        filterCategoryId: cat._id,
+        filterCategoryName: cat.name,
+        'form.categoryId': cat._id,
+        selectedCategoryName: cat.name
+      });
+      wx.setNavigationBarTitle({ title: cat.name + ' - 商品' });
+      this.loadData();
+    }
+  },
+
+  // 清除分类筛选
+  onClearFilter() {
+    this.setData({ filterCategoryId: '', filterCategoryName: '', 'form.categoryId': '' });
+    wx.setNavigationBarTitle({ title: '商品管理' });
+    this.loadData();
+  },
+
+  // 导航切换
+  onNavTap(e) {
+    const page = e.currentTarget.dataset.page;
+    if (page === 'orders') wx.redirectTo({ url: '/pages/admin/orders/orders' });
+    else if (page === 'categories') wx.redirectTo({ url: '/pages/admin/categories/categories' });
+  },
+
+  // 退出
+  onLogout() {
+    wx.showModal({
+      title: '退出管理', content: '确定退出吗？',
+      success: (res) => { if (res.confirm) { auth.adminLogout(); wx.switchTab({ url: '/pages/admin/login/login' }); } }
+    });
   }
 });

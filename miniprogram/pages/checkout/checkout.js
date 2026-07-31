@@ -83,53 +83,27 @@ Page({
         remark: remark.trim()
       });
 
+      if (!result.success) {
+        wx.showToast({ title: result.error || '下单失败', icon: 'none' });
+        return;
+      }
+
       // 缓存地址和电话
       wx.setStorageSync('last_address', address.trim());
       wx.setStorageSync('last_phone', phone.trim());
 
-      // 调起微信支付
-      if (result.payParams) {
-        wx.requestPayment({
-          timeStamp: result.payParams.timeStamp,
-          nonceStr: result.payParams.nonceStr,
-          package: result.payParams.package,
-          signType: result.payParams.signType || 'MD5',
-          paySign: result.payParams.paySign,
-          success: () => {
-            cart.clearCart();
-            wx.showToast({
-              title: '支付成功',
-              icon: 'success',
-              duration: 2000,
-              success: () => {
-                setTimeout(() => {
-                  wx.switchTab({ url: '/pages/orders/orders' });
-                }, 2000);
-              }
-            });
-          },
-          fail: (err) => {
-            if (err.errMsg.indexOf('cancel') > -1) {
-              wx.showToast({ title: '已取消支付', icon: 'none' });
-            } else {
-              wx.showToast({ title: '支付失败，请重试', icon: 'none' });
-            }
-          }
-        });
-      } else {
-        // 无支付参数（如支付未配置时），直接完成下单
-        cart.clearCart();
-        wx.showToast({
-          title: '下单成功',
-          icon: 'success',
-          duration: 2000,
-          success: () => {
-            setTimeout(() => {
-              wx.switchTab({ url: '/pages/orders/orders' });
-            }, 2000);
-          }
-        });
-      }
+      // 下单成功
+      cart.clearCart();
+      wx.showToast({
+        title: '下单成功',
+        icon: 'success',
+        duration: 2000,
+        success: () => {
+          setTimeout(() => {
+            wx.switchTab({ url: '/pages/orders/orders' });
+          }, 2000);
+        }
+      });
     } catch (err) {
       console.error('下单失败:', err);
       const msg = err.errMsg || err.message || '';

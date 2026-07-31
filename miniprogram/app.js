@@ -26,9 +26,14 @@ App({
   checkLogin() {
     const userInfo = wx.getStorageSync('userInfo');
     const userId = wx.getStorageSync('userId');
+    const adminLoggedIn = wx.getStorageSync('adminLoggedIn');
     if (userInfo && userId) {
       this.globalData.userInfo = userInfo;
       this.globalData.userId = userId;
+    }
+    if (adminLoggedIn) {
+      this.globalData.adminLoggedIn = true;
+      this.globalData.isAdmin = true;
     }
   },
 

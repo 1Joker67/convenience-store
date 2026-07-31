@@ -1,6 +1,14 @@
 <!-- pages/admin/orders/orders.wxml — 管理端订单管理 -->
 <view class="page">
-  <!-- 顶部操作栏 -->
+  <!-- 顶部导航 -->
+  <view class="nav-bar">
+    <view class="nav-item active"><text>📋 订单</text></view>
+    <view class="nav-item" bindtap="onNavTap" data-page="products"><text>📦 商品</text></view>
+    <view class="nav-item" bindtap="onNavTap" data-page="categories"><text>📂 分类</text></view>
+    <text class="logout-btn" bindtap="onLogout">退出</text>
+  </view>
+
+  <!-- 状态筛选 -->
   <view class="header-bar">
     <view class="flex-1">
       <view
@@ -10,11 +18,8 @@
         class="filter-tag {{statusFilter === s ? 'active' : ''}}"
         data-status="{{s}}"
         bindtap="onFilterTap"
-      >
-        {{s === '' ? '全部' : s === 'pending' ? '待支付' : s === 'paid' ? '已支付' : '已取消'}}
-      </view>
+      >{{s === '' ? '全部' : s === 'pending' ? '待支付' : s === 'paid' ? '已支付' : '已取消'}}</view>
     </view>
-    <text class="logout-btn" bindtap="onLogout">退出</text>
   </view>
 
   <view wx:if="{{loading}}" class="loading">加载中...</view>
@@ -25,13 +30,7 @@
   </view>
 
   <view wx:else class="order-list">
-    <view
-      wx:for="{{orders}}"
-      wx:key="_id"
-      class="card order-card"
-      data-order="{{item}}"
-      bindtap="onOrderTap"
-    >
+    <view wx:for="{{orders}}" wx:key="_id" class="card order-card" data-order="{{item}}" bindtap="onOrderTap">
       <view class="flex-between mb-10">
         <view>
           <image wx:if="{{item.userInfo.avatarUrl}}" src="{{item.userInfo.avatarUrl}}" class="avatar" />

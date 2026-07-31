@@ -2,27 +2,27 @@
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
-const _ = db.command;
 
 exports.main = async (event) => {
-  const { categoryId, keyword, pageSize = 50, page = 1 } = event;
+  const { categoryId, keyword } = event;
+  console.log('getProducts 入参:', JSON.stringify(event));
+
   try {
-    // 构建查询条件（不能链式 .where()，需合并到一个对象）
     const condition = { status: 'on' };
     if (categoryId) condition.categoryId = categoryId;
     if (keyword) condition.name = db.RegExp({ regexp: keyword, options: 'i' });
+    console.log('查询条件:', JSON.stringify(condition));
 
-    const skip = (page - 1) * pageSize;
     const result = await db.collection('products')
       .where(condition)
       .orderBy('createdAt', 'desc')
-      .skip(skip)
-      .limit(pageSize)
+      .limit(100)
       .get();
 
+    console.log('查询结果数量:', result.data.length);
     return { success: true, data: result.data };
   } catch (err) {
-    console.error('getProducts error:', err);
+    console.error('getProducts error:', err.message, err.stack);
     return { success: false, error: err.message, data: [] };
   }
 };

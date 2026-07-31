@@ -1,9 +1,24 @@
 <!-- pages/admin/products/products.wxml — 商品管理 -->
 <view class="page">
+  <!-- 顶部导航 -->
+  <view class="nav-bar">
+    <view class="nav-item" bindtap="onNavTap" data-page="orders"><text>📋 订单</text></view>
+    <view class="nav-item active"><text>📦 商品</text></view>
+    <view class="nav-item" bindtap="onNavTap" data-page="categories"><text>📂 分类</text></view>
+    <text class="logout-btn" bindtap="onLogout">退出</text>
+  </view>
   <!-- 商品列表 -->
   <view wx:if="{{!showForm}}">
     <view class="header-bar">
-      <text class="title">商品列表（{{products.length}}）</text>
+      <view class="flex-1">
+        <picker mode="selector" range="{{categories}}" range-key="name" bindchange="onSwitchCategory">
+          <view class="category-switch">
+            <text class="title" wx:if="{{!filterCategoryId}}">全部商品（{{products.length}}）</text>
+            <text class="title" wx:else>「{{filterCategoryName}}」（{{products.length}}）</text>
+            <text class="switch-icon">▾</text>
+          </view>
+        </picker>
+      </view>
       <view class="btn btn-small btn-primary" bindtap="onAdd">添加商品</view>
     </view>
 
@@ -76,7 +91,7 @@
         <text class="label">所属分类</text>
         <picker mode="selector" range="{{categories}}" range-key="name" bindchange="onCategoryChange">
           <view class="picker-value">
-            {{form.categoryId ? '已选择' : '请选择分类'}}
+            {{selectedCategoryName || '请选择分类'}}
           </view>
         </picker>
       </view>

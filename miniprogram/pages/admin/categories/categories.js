@@ -1,4 +1,4 @@
-// pages/admin/categories/categories.js — 分类管理
+// pages/admin/categories/categories.js
 const api = require('../../../utils/api.js');
 const auth = require('../../../utils/auth.js');
 
@@ -13,10 +13,7 @@ Page({
   },
 
   onShow() {
-    if (!auth.isAdminLoggedIn()) {
-      wx.redirectTo({ url: '/pages/admin/login/login' });
-      return;
-    }
+    if (!auth.isAdminLoggedIn()) { wx.switchTab({ url: '/pages/admin/login/login' }); return; }
     this.loadCategories();
   },
 
@@ -24,75 +21,112 @@ Page({
     try {
       this.setData({ loading: true });
       const result = await api.manageCategory('list');
-      this.setData({
-        categories: result.data || [],
-        loading: false
-      });
+      console.log('分类列表:', JSON.stringify(result));
+      this.setData({ categories: result.data || [], loading: false });
     } catch (err) {
+      console.error('加载分类失败:', err);
       this.setData({ loading: false });
     }
   },
 
-  // 显示添加
-  onAdd() {
-    this.setData({ showForm: true, editMode: false, editId: '', formName: '' });
-  },
-
-  // 显示编辑
+  onAdd() { this.setData({ showForm: true, editMode: false, editId: '', formName: '' }); },
   onEdit(e) {
     const cat = e.currentTarget.dataset.category;
     this.setData({ showForm: true, editMode: true, editId: cat._id, formName: cat.name });
   },
+  onInput(e) { this.setData({ formName: e.detail.value }); },
 
-  onInput(e) {
-    this.setData({ formName: e.detail.value });
-  },
-
-  // 提交
   async onSubmit() {
     const name = this.data.formName.trim();
-    if (!name) {
-      wx.showToast({ title: '请输入分类名称', icon: 'none' });
-      return;
-    }
-
+    if (!name) { wx.showToast({ title: '请输入分类名称', icon: 'none' }); return; }
     try {
       const action = this.data.editMode ? 'update' : 'add';
       const data = { name };
-      if (this.data.editMode) {
-        data.categoryId = this.data.editId;
-      }
-
-      await api.manageCategory(action, data);
-      wx.showToast({ title: this.data.editMode ? '修改成功' : '添加成功', icon: 'success' });
+      if (this.data.editMode) data.categoryId = this.data.editId;
+      const result = await api.manageCategory(action, data);
+      console.log('提交结果:', JSON.stringify(result));
+      wx.showToast({ title: this.data.editMode ? '已修改' : '已添加', icon: 'success' });
       this.setData({ showForm: false });
       this.loadCategories();
     } catch (err) {
+      console.error('提交失败:', err);
       wx.showToast({ title: '操作失败', icon: 'none' });
     }
   },
 
-  // 删除
-  onDelete(e) {
+  async onMoveUp(e) {
+    const id = e.currentTarget.dataset.id;
+    console.log('上移分类:', id);
+    wx.showLoading({ title: '排序中...' });
+    try {
+      const result = await api.manageCategory('moveUp', { categoryId: id });
+      console.log('moveUp 结果:', JSON.stringify(result));
+      wx.hideLoading();
+      if (result.success) {
+        this.loadCategories();
+      } else {
+        wx.showToast({ title: result.error || '操作失败', icon: 'none' });
+      }
+    } catch (err) {
+      wx.hideLoading();
+      console.error('moveUp 异常:', err);
+      wx.showToast({ title: '操作失败', icon: 'none' });
+    }
+  },
+
+  async onMoveDown(e) {
+    const id = e.currentTarget.dataset.id;
+    console.log('下移分类:', id);
+    wx.showLoading({ title: '排序中...' });
+    try {
+      const result = await api.manageCategory('moveDown', { categoryId: id });
+      console.log('moveDown 结果:', JSON.stringify(result));
+      wx.hideLoading();
+      if (result.success) {
+        this.loadCategories();
+      } else {
+        wx.showToast({ title: result.error || '操作失败', icon: 'none' });
+      }
+    } catch (err) {
+      wx.hideLoading();
+      console.error('moveDown 异常:', err);
+      wx.showToast({ title: '操作失败', icon: 'none' });
+    }
+  },
+
+  onGoProducts(e) {
+    const { id, name } = e.currentTarget.dataset;
+    wx.redirectTo({ url: '/pages/admin/products/products?categoryId=' + id + '&categoryName=' + name });
+  },
+
+  async onDelete(e) {
     const cat = e.currentTarget.dataset.category;
     wx.showModal({
-      title: '确认删除',
-      content: `确定删除「${cat.name}」分类吗？\n该分类下的商品将变为未分类。`,
+      title: '确认删除', content: '确定删除「' + cat.name + '」吗？',
       success: async (res) => {
         if (res.confirm) {
           try {
             await api.manageCategory('delete', { categoryId: cat._id });
             wx.showToast({ title: '已删除', icon: 'success' });
             this.loadCategories();
-          } catch (err) {
-            wx.showToast({ title: '删除失败', icon: 'none' });
-          }
+          } catch (err) { wx.showToast({ title: '删除失败', icon: 'none' }); }
         }
       }
     });
   },
 
-  onCancel() {
-    this.setData({ showForm: false });
+  onCancel() { this.setData({ showForm: false }); },
+
+  onNavTap(e) {
+    const page = e.currentTarget.dataset.page;
+    if (page === 'orders') wx.redirectTo({ url: '/pages/admin/orders/orders' });
+    else if (page === 'products') wx.redirectTo({ url: '/pages/admin/products/products' });
+  },
+
+  onLogout() {
+    wx.showModal({
+      title: '退出管理', content: '确定退出吗？',
+      success: (res) => { if (res.confirm) { auth.adminLogout(); wx.switchTab({ url: '/pages/admin/login/login' }); } }
+    });
   }
 });

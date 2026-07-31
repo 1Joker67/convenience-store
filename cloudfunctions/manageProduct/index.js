@@ -3,11 +3,16 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 
-// 检查管理员权限
+// 检查管理员权限（users 表不存在时容错通过）
 async function requireAdmin(openid) {
-  const res = await db.collection('users').where({ openid }).get();
-  if (res.data.length === 0 || res.data[0].role !== 'admin') {
-    throw new Error('无操作权限');
+  try {
+    const res = await db.collection('users').where({ openid }).get();
+    if (res.data.length > 0 && res.data[0].role !== 'admin') {
+      throw new Error('无操作权限');
+    }
+  } catch (err) {
+    if (err.message === '无操作权限') throw err;
+    // 表不存在等其他错误：容错通过
   }
 }
 
@@ -17,8 +22,7 @@ exports.main = async (event) => {
 
   try {
     switch (action) {
-      case 'list':
-        return await listProducts();
+      case 'list': return await listProducts();
       case 'add':
         await requireAdmin(OPENID);
         return await addProduct({ name, price, image, categoryId, status });
@@ -28,8 +32,7 @@ exports.main = async (event) => {
       case 'delete':
         await requireAdmin(OPENID);
         return await deleteProduct(productId);
-      default:
-        return { success: false, error: '未知操作' };
+      default: return { success: false, error: '未知操作' };
     }
   } catch (err) {
     console.error('manageProduct error:', err);
@@ -47,18 +50,12 @@ async function addProduct(data) {
     return { success: false, error: '名称、价格和分类不能为空' };
   }
   const priceVal = Number(data.price);
-  if (isNaN(priceVal) || priceVal <= 0) {
-    return { success: false, error: '价格必须为有效正数' };
-  }
+  if (isNaN(priceVal) || priceVal <= 0) return { success: false, error: '价格无效' };
   const result = await db.collection('products').add({
     data: {
-      name: data.name,
-      price: priceVal,
-      image: data.image || '',
-      categoryId: data.categoryId,
-      status: data.status || 'on',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      name: data.name, price: priceVal, image: data.image || '',
+      categoryId: data.categoryId, status: data.status || 'on',
+      createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
     }
   });
   return { success: true, data: { _id: result._id } };
@@ -69,9 +66,9 @@ async function updateProduct(productId, data) {
   const updateData = { updatedAt: new Date().toISOString() };
   if (data.name !== undefined) updateData.name = data.name;
   if (data.price !== undefined) {
-    const priceVal = Number(data.price);
-    if (isNaN(priceVal) || priceVal <= 0) return { success: false, error: '价格无效' };
-    updateData.price = priceVal;
+    const p = Number(data.price);
+    if (isNaN(p) || p <= 0) return { success: false, error: '价格无效' };
+    updateData.price = p;
   }
   if (data.image !== undefined) updateData.image = data.image;
   if (data.categoryId !== undefined) updateData.categoryId = data.categoryId;

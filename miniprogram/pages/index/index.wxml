@@ -1,4 +1,4 @@
-<!-- pages/index/index.wxml — 首页 -->
+<!-- pages/index/index.wxml — 首页（含购物车） -->
 <view class="page">
   <!-- 顶部搜索栏 -->
   <view class="search-bar" bindtap="onSearchTap">
@@ -10,7 +10,7 @@
 
   <!-- 主体：左分类 + 右商品 -->
   <view class="main-content">
-    <!-- 左侧分类列表 -->
+    <!-- 左侧分类 -->
     <scroll-view class="category-list" scroll-y>
       <view
         wx:for="{{categories}}"
@@ -24,48 +24,73 @@
       </view>
     </scroll-view>
 
-    <!-- 右侧商品列表 -->
+    <!-- 右侧商品 -->
     <scroll-view class="product-list" scroll-y>
-      <!-- 加载中 -->
       <view wx:if="{{loading}}" class="loading">加载中...</view>
 
-      <!-- 商品网格 -->
       <view wx:else class="product-grid">
         <view
           wx:for="{{products}}"
           wx:key="_id"
           class="product-card"
         >
-          <image
-            wx:if="{{item.image}}"
-            src="{{item.image}}"
-            class="product-image"
-            mode="aspectFill"
-          />
-          <view wx:else class="product-image-placeholder">
-            <text>📦</text>
-          </view>
+          <image wx:if="{{item.image}}" src="{{item.image}}" class="product-image" mode="aspectFill" />
+          <view wx:else class="product-image-placeholder">📦</view>
           <view class="product-info">
             <text class="product-name text-ellipsis">{{item.name}}</text>
             <view class="product-bottom">
               <text class="price">{{item.price}}</text>
-              <view
-                class="btn-add"
-                data-product="{{item}}"
-                bindtap="onAddToCart"
-              >
-                <text>+</text>
-              </view>
+              <view class="btn-add" data-product="{{item}}" bindtap="onAddToCart">+</view>
             </view>
           </view>
         </view>
       </view>
 
-      <!-- 空状态 -->
       <view wx:if="{{!loading && products.length === 0}}" class="empty-state">
         <text class="icon">📭</text>
         <text class="text">该分类暂无商品</text>
       </view>
     </scroll-view>
+  </view>
+
+  <!-- 底部购物车栏 -->
+  <view class="cart-bar" bindtap="onCartBarTap">
+    <view class="cart-icon-wrap" wx:if="{{cartTotalCount > 0}}">
+      <text class="cart-icon">🛒</text>
+      <text class="cart-badge">{{cartTotalCount}}</text>
+    </view>
+    <text class="cart-icon" wx:else>🛒</text>
+    <text class="cart-total" wx:if="{{cartTotalCount > 0}}">¥{{cartTotalAmount}}</text>
+    <text class="cart-total placeholder" wx:else>购物车是空的</text>
+    <view class="cart-checkout-btn {{cartTotalCount > 0 ? '' : 'disabled'}}" catchtap="onGoCheckout">
+      去结算
+    </view>
+  </view>
+
+  <!-- 购物车弹出层 -->
+  <view class="cart-overlay {{showCart ? 'show' : ''}}" bindtap="onCloseCart"></view>
+  <view class="cart-popup {{showCart ? 'show' : ''}}">
+    <view class="cart-popup-header">
+      <text class="cart-popup-title">购物车</text>
+      <text class="cart-clear" bindtap="onClearCart">清空</text>
+    </view>
+
+    <scroll-view class="cart-popup-list" scroll-y wx:if="{{cartList.length > 0}}">
+      <view wx:for="{{cartList}}" wx:key="_id" class="cart-popup-item">
+        <view class="item-info flex-1">
+          <text class="item-name text-ellipsis">{{item.name}}</text>
+          <text class="price">{{item.price}}</text>
+        </view>
+        <view class="item-quantity">
+          <view class="qty-btn" data-id="{{item._id}}" catchtap="onDecrease">−</view>
+          <text class="qty-num">{{item.quantity}}</text>
+          <view class="qty-btn plus" data-id="{{item._id}}" catchtap="onIncrease">+</view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view wx:else class="cart-empty-hint">
+      <text>购物车还是空的</text>
+    </view>
   </view>
 </view>
