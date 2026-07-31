@@ -10,15 +10,16 @@ async function requireAdmin(openid) {
   if (!res.data.length || res.data[0].role !== 'admin') throw new Error('无操作权限');
 }
 
-// 取消超时未支付订单（公开调用，无需管理员）
-async function cancelExpiredPending() {
+// 取消超时未支付订单
+async function cancelExpiredPending(openid, isAdmin) {
   const cutoff = new Date(Date.now() - PENDING_MINUTES * 60 * 1000);
-  const res = await db.collection('orders')
-    .where({
-      status: 'pending',
-      createdAt: db.command.lt(cutoff.toISOString())
-    })
-    .get();
+  const condition = {
+    status: 'pending',
+    createdAt: db.command.lt(cutoff.toISOString())
+  };
+  // 非管理员只能取消自己的超时订单
+  if (!isAdmin) condition.userId = openid;
+  const res = await db.collection('orders').where(condition).get();
 
   let cancelled = 0;
   for (const order of res.data) {
@@ -65,8 +66,12 @@ async function deleteExpiredOrders(days) {
 exports.main = async () => {
   const { OPENID } = cloud.getWXContext();
 
-  // 1. 取消超时未支付订单（任何用户触发都执行）
-  const cancelled = await cancelExpiredPending();
+  // 判断是否为管理员
+  let isAdmin = false;
+  try { await requireAdmin(OPENID); isAdmin = true; } catch (e) {}
+
+  // 1. 取消超时未支付订单（非管理员只取消自己的）
+  const cancelled = await cancelExpiredPending(OPENID, isAdmin);
 
   // 2. 删除过期订单（需管理员）
   let deleted = 0;

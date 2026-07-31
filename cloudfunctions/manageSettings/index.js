@@ -37,7 +37,13 @@ exports.main = async (event) => {
 async function getSettings() {
   const res = await db.collection('settings').limit(100).get();
   const data = {};
-  for (const doc of res.data) { data[doc.key] = doc.value; }
+  // 敏感 key 不对外暴露
+  const PUBLIC_KEYS = ['announcement', 'service_time', 'order_retention_days'];
+  for (const doc of res.data) {
+    if (PUBLIC_KEYS.includes(doc.key)) {
+      data[doc.key] = doc.value;
+    }
+  }
   if (!data.announcement) data.announcement = '';
   if (!data.service_time) data.service_time = { start: '08:00', end: '22:00', enabled: false };
   return { success: true, data };
