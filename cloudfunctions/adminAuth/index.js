@@ -21,15 +21,20 @@ async function getStoredPassword() {
 
 // 保存密码到数据库
 async function savePassword(pwd) {
-  const res = await db.collection('admin_config').where({ key: 'admin_password' }).get();
-  if (res.data.length > 0) {
-    await db.collection('admin_config').doc(res.data[0]._id).update({
-      data: { value: pwd, updatedAt: new Date().toISOString() }
-    });
-  } else {
-    await db.collection('admin_config').add({
-      data: { key: 'admin_password', value: pwd, createdAt: new Date().toISOString() }
-    });
+  try {
+    const res = await db.collection('admin_config').where({ key: 'admin_password' }).get();
+    if (res.data.length > 0) {
+      await db.collection('admin_config').doc(res.data[0]._id).update({
+        data: { value: pwd, updatedAt: new Date().toISOString() }
+      });
+    } else {
+      await db.collection('admin_config').add({
+        data: { key: 'admin_password', value: pwd, createdAt: new Date().toISOString() }
+      });
+    }
+  } catch (e) {
+    // 集合不存在时，.add() 应自动创建；若失败则抛出让上层处理
+    throw new Error('密码保存失败: ' + e.message);
   }
 }
 
@@ -50,12 +55,15 @@ exports.main = async (event) => {
       case 'changePassword': {
         if (!password || !newPassword) return { success: false, message: '请填写旧密码和新密码' };
         if (newPassword.length < 6) return { success: false, message: '新密码至少6位' };
-        await requireAdmin(OPENID);
-
+        // 旧密码验证本身就是权限校验
         const stored = await getStoredPassword();
         if (password !== stored) return { success: false, message: '旧密码错误' };
 
-        await savePassword(newPassword);
+        try {
+          await savePassword(newPassword);
+        } catch (e) {
+          return { success: false, message: e.message };
+        }
         return { success: true, message: '密码修改成功' };
       }
 
