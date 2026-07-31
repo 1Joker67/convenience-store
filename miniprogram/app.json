@@ -42,7 +42,7 @@
         "text": "订单",
         "iconPath": "images/tab-orders.png",
         "selectedIconPath": "images/tab-orders-active.png"
-      },
+      }
     ]
   },
   "sitemapLocation": "sitemap.json",
