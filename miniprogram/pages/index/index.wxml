@@ -13,7 +13,7 @@
         <text class="search-placeholder">搜索商品</text>
       </view>
     </view>
-    <view class="admin-entry" wx:if="{{isAdmin}}" bindtap="onAdminTap">⚙</view>
+    <view class="admin-entry" bindtap="onAdminTap">⚙</view>
   </view>
 
   <!-- 主体：左分类 + 右商品 -->

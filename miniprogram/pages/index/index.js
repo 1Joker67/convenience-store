@@ -114,7 +114,11 @@ Page({
   onSearchTap() { wx.navigateTo({ url: '/pages/search/search' }); },
 
   onAdminTap() {
-    wx.navigateTo({ url: '/pages/admin/login/login' });
+    if (getApp().globalData.adminLoggedIn) {
+      wx.navigateTo({ url: '/pages/admin/orders/orders' });
+    } else {
+      wx.navigateTo({ url: '/pages/admin/login/login' });
+    }
   },
 
   // ========== 购物车操作 ==========
