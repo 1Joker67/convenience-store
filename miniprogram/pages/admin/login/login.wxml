@@ -4,7 +4,7 @@
     <view class="login-header">
       <text class="login-icon">🔐</text>
       <text class="login-title">店主管理后台</text>
-      <text class="login-desc">请输入管理密码</text>
+      <text class="login-desc">仅限管理员登录</text>
     </view>
 
     <view class="input-box">
