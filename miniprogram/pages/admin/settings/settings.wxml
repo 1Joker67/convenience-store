@@ -1,0 +1,58 @@
+<!-- pages/admin/settings/settings.wxml — 公告 + 服务时间 -->
+<view class="page">
+  <view class="nav-bar">
+    <view class="nav-item" bindtap="onNavTap" data-page="orders"><text>📋 订单</text></view>
+    <view class="nav-item" bindtap="onNavTap" data-page="products"><text>📦 商品</text></view>
+    <view class="nav-item" bindtap="onNavTap" data-page="categories"><text>📂 分类</text></view>
+    <view class="nav-item active"><text>⚙️ 设置</text></view>
+    <text class="logout-btn" bindtap="onLogout">退出</text>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+
+  <view wx:else>
+    <!-- 公告 -->
+    <view class="section">
+      <view class="section-title">
+        <text>📢 公告</text>
+        <view class="btn btn-small btn-primary" bindtap="onSaveAnnouncement">{{saving ? '保存中' : '保存'}}</view>
+      </view>
+      <view class="card">
+        <textarea
+          class="announce-input"
+          placeholder="输入公告内容，留空则不显示"
+          value="{{announcement}}"
+          bindinput="onAnnouncementInput"
+          maxlength="500"
+        />
+        <text class="text-sm text-light mt-10">顾客在首页顶部可以看到公告</text>
+      </view>
+    </view>
+
+    <!-- 服务时间 -->
+    <view class="section">
+      <view class="section-title">
+        <text>🕐 服务时间</text>
+        <view class="btn btn-small btn-primary" bindtap="onSaveServiceTime">{{saving ? '保存中' : '保存'}}</view>
+      </view>
+      <view class="card">
+        <view class="flex-row" style="align-items:center;margin-bottom:15px;">
+          <text style="margin-right:10px;font-size:14px;">开启限制</text>
+          <switch checked="{{serviceTime.enabled}}" bindchange="onToggleService" color="#07c160" />
+        </view>
+        <view class="flex-row" style="align-items:center;">
+          <picker mode="time" value="{{serviceTime.start}}" bindchange="onStartChange">
+            <view class="time-picker">{{serviceTime.start}}</view>
+          </picker>
+          <text style="margin:0 10px;">至</text>
+          <picker mode="time" value="{{serviceTime.end}}" bindchange="onEndChange">
+            <view class="time-picker">{{serviceTime.end}}</view>
+          </picker>
+        </view>
+        <text class="text-sm text-light" style="margin-top:10px;display:block;">
+          {{serviceTime.enabled ? '已开启，非服务时间顾客只能浏览不能下单' : '未开启，顾客随时可以下单'}}
+        </text>
+      </view>
+    </view>
+  </view>
+</view>

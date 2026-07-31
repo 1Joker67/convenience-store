@@ -5,6 +5,7 @@
     <view class="nav-item" bindtap="onNavTap" data-page="orders"><text>📋 订单</text></view>
     <view class="nav-item" bindtap="onNavTap" data-page="products"><text>📦 商品</text></view>
     <view class="nav-item active"><text>📂 分类</text></view>
+    <view class="nav-item" bindtap="onNavTap" data-page="settings"><text>⚙️ 设置</text></view>
     <text class="logout-btn" bindtap="onLogout">退出</text>
   </view>
 

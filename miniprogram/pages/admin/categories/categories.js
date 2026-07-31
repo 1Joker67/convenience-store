@@ -21,7 +21,6 @@ Page({
     try {
       this.setData({ loading: true });
       const result = await api.manageCategory('list');
-      console.log('分类列表:', JSON.stringify(result));
       this.setData({ categories: result.data || [], loading: false });
     } catch (err) {
       console.error('加载分类失败:', err);
@@ -44,7 +43,6 @@ Page({
       const data = { name };
       if (this.data.editMode) data.categoryId = this.data.editId;
       const result = await api.manageCategory(action, data);
-      console.log('提交结果:', JSON.stringify(result));
       wx.showToast({ title: this.data.editMode ? '已修改' : '已添加', icon: 'success' });
       this.setData({ showForm: false });
       this.loadCategories();
@@ -56,11 +54,9 @@ Page({
 
   async onMoveUp(e) {
     const id = e.currentTarget.dataset.id;
-    console.log('上移分类:', id);
     wx.showLoading({ title: '排序中...' });
     try {
       const result = await api.manageCategory('moveUp', { categoryId: id });
-      console.log('moveUp 结果:', JSON.stringify(result));
       wx.hideLoading();
       if (result.success) {
         this.loadCategories();
@@ -76,11 +72,9 @@ Page({
 
   async onMoveDown(e) {
     const id = e.currentTarget.dataset.id;
-    console.log('下移分类:', id);
     wx.showLoading({ title: '排序中...' });
     try {
       const result = await api.manageCategory('moveDown', { categoryId: id });
-      console.log('moveDown 结果:', JSON.stringify(result));
       wx.hideLoading();
       if (result.success) {
         this.loadCategories();
@@ -121,6 +115,7 @@ Page({
     const page = e.currentTarget.dataset.page;
     if (page === 'orders') wx.redirectTo({ url: '/pages/admin/orders/orders' });
     else if (page === 'products') wx.redirectTo({ url: '/pages/admin/products/products' });
+    else if (page === 'settings') wx.redirectTo({ url: '/pages/admin/settings/settings' });
   },
 
   onLogout() {

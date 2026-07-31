@@ -37,11 +37,9 @@ Page({
   // 顶部导航切换
   onNavTap(e) {
     const page = e.currentTarget.dataset.page;
-    if (page === 'products') {
-      wx.redirectTo({ url: '/pages/admin/products/products' });
-    } else if (page === 'categories') {
-      wx.redirectTo({ url: '/pages/admin/categories/categories' });
-    }
+    if (page === 'products') wx.redirectTo({ url: '/pages/admin/products/products' });
+    else if (page === 'categories') wx.redirectTo({ url: '/pages/admin/categories/categories' });
+    else if (page === 'settings') wx.redirectTo({ url: '/pages/admin/settings/settings' });
   },
 
   onOrderTap(e) {

@@ -8,7 +8,9 @@
     "pages/search/search",
     "pages/admin/orders/orders",
     "pages/admin/products/products",
-    "pages/admin/categories/categories"
+    "pages/admin/categories/categories",
+    "pages/admin/settings/settings",
+    "pages/address/address"
   ],
   "window": {
     "backgroundTextStyle": "light",

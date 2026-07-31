@@ -69,6 +69,15 @@ function manageCategory(action, data = {}) {
   return callFunction('manageCategory', { action, ...data });
 }
 
+// 管理设置
+function manageSettings(action, key, value) {
+  return callFunction('manageSettings', { action, key, value });
+}
+// 获取设置（公告、服务时间）
+function getSettings() {
+  return callFunction('manageSettings', { action: 'get' });
+}
+
 module.exports = {
   callFunction,
   getProducts,
@@ -76,5 +85,7 @@ module.exports = {
   getOrders,
   adminAuth,
   manageProduct,
-  manageCategory
+  manageCategory,
+  manageSettings,
+  getSettings
 };

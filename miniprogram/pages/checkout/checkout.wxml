@@ -1,29 +1,19 @@
 <!-- pages/checkout/checkout.wxml — 下单结算 -->
 <view class="page">
-  <!-- 收货信息 -->
-  <view class="section">
-    <view class="section-title">收货信息</view>
-    <view class="input-group">
-      <view class="input-row">
-        <text class="label">收货地址</text>
-        <input
-          placeholder="请输入详细地址"
-          value="{{address}}"
-          bindinput="onAddressInput"
-          placeholder-class="placeholder"
-        />
+  <!-- 收货地址 -->
+  <view class="section" bindtap="onChooseAddress">
+    <view wx:if="{{address}}" class="addr-selected">
+      <view class="addr-top-line">
+        <text class="addr-name">{{name || '收货人'}}</text>
+        <text class="addr-phone">{{phone}}</text>
+        <text class="addr-arrow">></text>
       </view>
-      <view class="input-row">
-        <text class="label">联系电话</text>
-        <input
-          type="number"
-          maxlength="11"
-          placeholder="请输入手机号"
-          value="{{phone}}"
-          bindinput="onPhoneInput"
-          placeholder-class="placeholder"
-        />
-      </view>
+      <text class="addr-text">{{address}}</text>
+    </view>
+    <view wx:else class="addr-empty">
+      <text class="addr-icon">📍</text>
+      <text>请选择收货地址</text>
+      <text class="addr-arrow">></text>
     </view>
   </view>
 
@@ -32,13 +22,7 @@
     <view class="section-title">备注</view>
     <view class="input-group">
       <view class="input-row">
-        <textarea
-          placeholder="如有特殊需求请备注"
-          value="{{remark}}"
-          bindinput="onRemarkInput"
-          placeholder-class="placeholder"
-          maxlength="200"
-        />
+        <textarea placeholder="如有特殊需求请备注" value="{{remark}}" bindinput="onRemarkInput" placeholder-class="placeholder" maxlength="200" />
       </view>
     </view>
   </view>
@@ -47,17 +31,8 @@
   <view class="section">
     <view class="section-title">商品清单</view>
     <view class="cart-list">
-      <view
-        wx:for="{{cartList}}"
-        wx:key="_id"
-        class="cart-item"
-      >
-        <image
-          wx:if="{{item.image}}"
-          src="{{item.image}}"
-          class="item-image"
-          mode="aspectFill"
-        />
+      <view wx:for="{{cartList}}" wx:key="_id" class="cart-item">
+        <image wx:if="{{item.image}}" src="{{item.image}}" class="item-image" mode="aspectFill" />
         <view wx:else class="item-image-placeholder">📦</view>
         <view class="item-info">
           <text class="item-name text-ellipsis">{{item.name}}</text>
@@ -70,17 +45,14 @@
     </view>
   </view>
 
-  <!-- 底部结算 -->
+  <!-- 底部 -->
   <view class="bottom-bar">
     <view class="flex-1">
       <text class="total-label">合计：</text>
       <text class="price text-xl">{{totalAmount}}</text>
     </view>
-    <view
-      class="btn {{submitting ? 'btn-disabled' : 'btn-primary'}}"
-      bindtap="onSubmit"
-    >
-      {{submitting ? '提交中...' : '提交订单并支付'}}
+    <view class="btn {{submitting ? 'btn-disabled' : 'btn-primary'}}" bindtap="onSubmit">
+      {{submitting ? '提交中...' : '提交订单'}}
     </view>
   </view>
 </view>

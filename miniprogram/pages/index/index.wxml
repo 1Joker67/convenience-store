@@ -1,5 +1,10 @@
 <!-- pages/index/index.wxml — 首页（含购物车） -->
 <view class="page">
+  <!-- 公告 -->
+  <view class="announce-bar" wx:if="{{announcement}}">
+    <text>📢 {{announcement}}</text>
+  </view>
+
   <!-- 顶部搜索栏 -->
   <view class="search-bar" bindtap="onSearchTap">
     <view class="search-input">
@@ -53,6 +58,9 @@
     </scroll-view>
   </view>
 
+  <!-- 服务时间提示 -->
+  <view class="service-msg" wx:if="{{serviceMsg}}">{{serviceMsg}}</view>
+
   <!-- 底部购物车栏 -->
   <view class="cart-bar" bindtap="onCartBarTap">
     <view class="cart-icon-wrap" wx:if="{{cartTotalCount > 0}}">
@@ -62,8 +70,9 @@
     <text class="cart-icon" wx:else>🛒</text>
     <text class="cart-total" wx:if="{{cartTotalCount > 0}}">¥{{cartTotalAmount}}</text>
     <text class="cart-total placeholder" wx:else>购物车是空的</text>
-    <view class="cart-checkout-btn {{cartTotalCount > 0 ? '' : 'disabled'}}" catchtap="onGoCheckout">
-      去结算
+    <text class="min-amount" wx:if="{{cartTotalCount > 0 && cartTotalAmount < minAmount}}">差¥{{minAmount - cartTotalAmount}}起送</text>
+    <view class="cart-checkout-btn {{cartCanCheckout && inServiceTime ? '' : 'disabled'}}" catchtap="onGoCheckout">
+      {{checkoutBtnText}}
     </view>
   </view>
 

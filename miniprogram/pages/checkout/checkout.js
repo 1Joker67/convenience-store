@@ -5,115 +5,83 @@ const auth = require('../../utils/auth.js');
 
 Page({
   data: {
-    cartList: [],
-    totalAmount: 0,
-    address: '',
-    phone: '',
-    remark: '',
+    cartList: [], totalAmount: 0,
+    name: '', address: '', phone: '', remark: '',
     submitting: false
   },
 
   onLoad() {
-    // 加载缓存地址
-    const address = wx.getStorageSync('last_address') || '';
-    const phone = wx.getStorageSync('last_phone') || '';
     this.setData({
       cartList: cart.getCart(),
-      totalAmount: cart.getTotalAmount().toFixed(2),
-      address,
-      phone
+      totalAmount: cart.getTotalAmount().toFixed(2)
     });
-  },
-
-  // 输入地址
-  onAddressInput(e) {
-    this.setData({ address: e.detail.value });
-  },
-
-  // 输入电话
-  onPhoneInput(e) {
-    this.setData({ phone: e.detail.value });
-  },
-
-  // 输入备注
-  onRemarkInput(e) {
-    this.setData({ remark: e.detail.value });
-  },
-
-  // 提交订单
-  async onSubmit() {
-    const { address, phone, cartList, totalAmount, remark } = this.data;
-
-    // 表单校验
-    if (!address.trim()) {
-      wx.showToast({ title: '请填写收货地址', icon: 'none' });
-      return;
-    }
-    if (!phone.trim()) {
-      wx.showToast({ title: '请填写联系电话', icon: 'none' });
-      return;
-    }
-    if (!/^1\d{10}$/.test(phone.trim())) {
-      wx.showToast({ title: '请输入正确的手机号', icon: 'none' });
-      return;
-    }
-    if (cartList.length === 0) {
+    if (cart.getCart().length === 0) {
       wx.showToast({ title: '购物车为空', icon: 'none' });
-      return;
+      setTimeout(() => wx.navigateBack(), 1000);
+    }
+    this.checkServiceTime();
+  },
+
+  // 被地址页回调
+  setAddress(addr) {
+    this.setData({ name: addr.name || '', phone: addr.phone || '', address: addr.address || '' });
+  },
+
+  // 选择地址
+  onChooseAddress() {
+    wx.navigateTo({ url: '/pages/address/address' });
+  },
+
+  onRemarkInput(e) { this.setData({ remark: e.detail.value }); },
+
+  // 服务时间
+  async checkServiceTime() {
+    try {
+      const result = await api.getSettings();
+      if (result.success && result.data) {
+        const st = result.data.service_time || {};
+        if (st.enabled) {
+          const now = new Date();
+          const cur = now.getHours() * 60 + now.getMinutes();
+          const s = parseInt(st.start) * 60 + parseInt(st.start.split(':')[1] || 0);
+          const e = parseInt(st.end) * 60 + parseInt(st.end.split(':')[1] || 0);
+          const ok = (s <= e) ? (cur >= s && cur <= e) : (cur >= s || cur <= e);
+          if (!ok) {
+            wx.showModal({ title: '不在服务时间', content: '服务时间 ' + st.start + '-' + st.end, showCancel: false, success: () => wx.navigateBack() });
+          }
+        }
+      }
+    } catch (err) {}
+  },
+
+  // 提交
+  async onSubmit() {
+    const { address, phone, cartList, totalAmount, remark, name } = this.data;
+    if (!address.trim()) { wx.showToast({ title: '请选择收货地址', icon: 'none' }); return; }
+    if (!phone.trim()) { wx.showToast({ title: '请选择收货地址', icon: 'none' }); return; }
+    if (!/^1\d{10}$/.test(phone.trim())) { wx.showToast({ title: '手机号格式不对', icon: 'none' }); return; }
+    if (cartList.length === 0) return;
+    if (parseFloat(totalAmount) < 20) {
+      wx.showToast({ title: '满20元起送', icon: 'none' }); return;
     }
 
     this.setData({ submitting: true });
-
     try {
-      // 确保已登录
       await auth.login();
-
-      // 调用下单云函数
       const result = await api.submitOrder({
-        items: cartList.map(item => ({
-          productId: item._id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          image: item.image
-        })),
+        items: cartList.map(i => ({ productId: i._id, name: i.name, price: i.price, quantity: i.quantity, image: i.image })),
         totalAmount: parseFloat(totalAmount),
-        address: address.trim(),
-        phone: phone.trim(),
-        remark: remark.trim()
+        address: (name ? name + '，' : '') + address.trim(),
+        phone: phone.trim(), remark: remark.trim()
       });
+      if (!result.success) { wx.showToast({ title: result.error || '下单失败', icon: 'none' }); return; }
 
-      if (!result.success) {
-        wx.showToast({ title: result.error || '下单失败', icon: 'none' });
-        return;
-      }
-
-      // 缓存地址和电话
-      wx.setStorageSync('last_address', address.trim());
-      wx.setStorageSync('last_phone', phone.trim());
-
-      // 下单成功
       cart.clearCart();
-      wx.showToast({
-        title: '下单成功',
-        icon: 'success',
-        duration: 2000,
-        success: () => {
-          setTimeout(() => {
-            wx.switchTab({ url: '/pages/orders/orders' });
-          }, 2000);
-        }
-      });
+      wx.showToast({ title: '下单成功', icon: 'success', duration: 1500,
+        success: () => setTimeout(() => wx.switchTab({ url: '/pages/orders/orders' }), 1500) });
     } catch (err) {
-      console.error('下单失败:', err);
       const msg = err.errMsg || err.message || '';
-      if (msg.includes('cancel') || msg.includes('deny') || msg.includes('拒绝')) {
-        wx.showToast({ title: '请先授权登录后再下单', icon: 'none' });
-      } else {
-        wx.showToast({ title: '下单失败，请重试', icon: 'none' });
-      }
-    } finally {
-      this.setData({ submitting: false });
-    }
+      wx.showToast({ title: msg.includes('cancel') || msg.includes('deny') ? '请先授权登录' : '下单失败', icon: 'none' });
+    } finally { this.setData({ submitting: false }); }
   }
 });

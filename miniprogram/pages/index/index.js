@@ -12,15 +12,52 @@ Page({
     showCart: false,
     cartList: [],
     cartTotalCount: 0,
-    cartTotalAmount: 0
+    cartTotalAmount: 0,
+    cartCanCheckout: false,
+    checkoutBtnText: '去结算',
+    // 公告 & 服务时间
+    announcement: '',
+    inServiceTime: true,
+    serviceMsg: '',
+    minAmount: 20
   },
 
   onLoad() {
     this.loadCategories();
+    this.loadSettings();
   },
 
   onShow() {
     this.refreshCart();
+  },
+
+  // 加载设置
+  async loadSettings() {
+    try {
+      const result = await api.getSettings();
+      if (result.success && result.data) {
+        const st = result.data.service_time || {};
+        const inService = this.checkServiceTime(st);
+        this.setData({
+          announcement: result.data.announcement || '',
+          inServiceTime: inService,
+          serviceMsg: st.enabled
+            ? (inService ? '' : '⏰ 服务时间 ' + st.start + '-' + st.end + '，请在服务时间内下单')
+            : ''
+        });
+      }
+    } catch (err) { /* 静默 */ }
+  },
+
+  // 检查是否在服务时间内
+  checkServiceTime(st) {
+    if (!st.enabled) return true; // 未开启限制
+    const now = new Date();
+    const current = now.getHours() * 60 + now.getMinutes();
+    const start = parseInt(st.start) * 60 + parseInt(st.start.split(':')[1] || 0);
+    const end = parseInt(st.end) * 60 + parseInt(st.end.split(':')[1] || 0);
+    if (start <= end) return current >= start && current <= end;
+    return current >= start || current <= end; // 跨日
   },
 
   // ========== 分类 & 商品 ==========
@@ -48,15 +85,12 @@ Page({
       let data = [];
       try {
         const result = await api.getProducts({ categoryId });
-        console.log('getProducts 返回:', JSON.stringify(result));
         data = result.data || [];
       } catch (e) {
-        console.log('getProducts 失败，换用 manageProduct list');
+        // getProducts 失败，换用 manageProduct list
       }
-      // 如果 getProducts 返回空，尝试 manageProduct
       if (data.length === 0) {
         const allResult = await api.manageProduct('list');
-        console.log('manageProduct list 返回:', JSON.stringify(allResult));
         const all = allResult.data || [];
         // 前端按分类筛选
         data = all.filter(p => p.categoryId === categoryId);
@@ -129,16 +163,27 @@ Page({
 
   onGoCheckout() {
     if (this.data.cartTotalCount === 0) return;
+    if (!this.data.inServiceTime) {
+      wx.showToast({ title: '请在服务时间内下单', icon: 'none' });
+      return;
+    }
+    if (parseFloat(this.data.cartTotalAmount) < this.data.minAmount) {
+      wx.showToast({ title: '满' + this.data.minAmount + '元起送', icon: 'none' });
+      return;
+    }
     this.setData({ showCart: false });
     wx.navigateTo({ url: '/pages/checkout/checkout' });
   },
 
   refreshCart() {
     const cartList = cart.getCart();
+    const total = cart.getTotalAmount();
     this.setData({
       cartList,
       cartTotalCount: cart.getTotalCount(),
-      cartTotalAmount: cart.getTotalAmount().toFixed(2)
+      cartTotalAmount: total.toFixed(2),
+      cartCanCheckout: cart.getTotalCount() > 0 && total >= this.data.minAmount,
+      checkoutBtnText: cart.getTotalCount() > 0 && total < this.data.minAmount ? '¥' + this.data.minAmount + '起送' : '去结算'
     });
   }
 });

@@ -235,6 +235,7 @@ Page({
     const page = e.currentTarget.dataset.page;
     if (page === 'orders') wx.redirectTo({ url: '/pages/admin/orders/orders' });
     else if (page === 'categories') wx.redirectTo({ url: '/pages/admin/categories/categories' });
+    else if (page === 'settings') wx.redirectTo({ url: '/pages/admin/settings/settings' });
   },
 
   // 退出
