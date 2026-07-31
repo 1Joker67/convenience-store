@@ -48,7 +48,11 @@ function getOrders(params = {}) {
  * @param {string} password
  */
 function adminAuth(password) {
-  return callFunction('adminAuth', { password });
+  return callFunction('adminAuth', { action: 'login', password });
+}
+
+function changePassword(password, newPassword) {
+  return callFunction('adminAuth', { action: 'changePassword', password, newPassword });
 }
 
 /**
@@ -89,6 +93,7 @@ module.exports = {
   submitOrder,
   getOrders,
   adminAuth,
+  changePassword,
   manageProduct,
   manageCategory,
   manageSettings,

@@ -55,6 +55,32 @@
       </view>
     </view>
 
+    <!-- 修改密码 -->
+    <view class="section">
+      <view class="section-title">
+        <text>🔑 管理密码</text>
+        <view wx:if="{{!showPwdForm}}" class="btn btn-small btn-outline" bindtap="onShowPwdForm">修改</view>
+      </view>
+      <view wx:if="{{showPwdForm}}" class="card">
+        <view class="form-item">
+          <text class="label">旧密码</text>
+          <input class="pwd-input" type="password" placeholder="输入旧密码" value="{{oldPwd}}" bindinput="onOldPwdInput" />
+        </view>
+        <view class="form-item">
+          <text class="label">新密码</text>
+          <input class="pwd-input" type="password" placeholder="至少6位" value="{{newPwd}}" bindinput="onNewPwdInput" />
+        </view>
+        <view class="form-item">
+          <text class="label">确认新密码</text>
+          <input class="pwd-input" type="password" placeholder="再次输入" value="{{confirmPwd}}" bindinput="onConfirmPwdInput" />
+        </view>
+        <view style="display:flex;gap:10px;margin-top:10px;">
+          <view class="btn btn-small btn-primary" bindtap="onChangePassword">确认修改</view>
+          <view class="btn btn-small btn-outline" bindtap="onHidePwdForm">取消</view>
+        </view>
+      </view>
+    </view>
+
     <!-- 订单保留天数 -->
     <view class="section">
       <view class="section-title">

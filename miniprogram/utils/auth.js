@@ -27,7 +27,7 @@ function isAdminLoggedIn() {
 
 async function adminLogin(password) {
   const api = require('./api.js');
-  const result = await api.adminAuth(password);
+  const result = await api.adminAuth(password);  // api.adminAuth 内部已传 action:'login'
   if (result.success) {
     getApp().setAdmin(true);
   }

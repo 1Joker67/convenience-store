@@ -8,7 +8,10 @@ Page({
     serviceTime: { start: '08:00', end: '22:00', enabled: false },
     retentionDays: 30,
     loading: true,
-    saving: false
+    saving: false,
+    // 修改密码
+    showPwdForm: false,
+    oldPwd: '', newPwd: '', confirmPwd: ''
   },
 
   onShow() {
@@ -79,6 +82,31 @@ Page({
       await api.manageSettings('update', 'order_retention_days', this.data.retentionDays);
       wx.showToast({ title: '已保存', icon: 'success' });
     } catch (err) { wx.showToast({ title: '保存失败', icon: 'none' }); }
+    finally { this.setData({ saving: false }); }
+  },
+
+  // 修改密码
+  onShowPwdForm() { this.setData({ showPwdForm: true, oldPwd: '', newPwd: '', confirmPwd: '' }); },
+  onHidePwdForm() { this.setData({ showPwdForm: false }); },
+  onOldPwdInput(e) { this.setData({ oldPwd: e.detail.value }); },
+  onNewPwdInput(e) { this.setData({ newPwd: e.detail.value }); },
+  onConfirmPwdInput(e) { this.setData({ confirmPwd: e.detail.value }); },
+
+  async onChangePassword() {
+    const { oldPwd, newPwd, confirmPwd } = this.data;
+    if (!oldPwd || !newPwd) { wx.showToast({ title: '请填写完整', icon: 'none' }); return; }
+    if (newPwd.length < 6) { wx.showToast({ title: '新密码至少6位', icon: 'none' }); return; }
+    if (newPwd !== confirmPwd) { wx.showToast({ title: '两次密码不一致', icon: 'none' }); return; }
+    try {
+      this.setData({ saving: true });
+      const result = await api.changePassword(oldPwd, newPwd);
+      if (result.success) {
+        wx.showToast({ title: '密码修改成功', icon: 'success' });
+        this.setData({ showPwdForm: false });
+      } else {
+        wx.showToast({ title: result.message || '修改失败', icon: 'none' });
+      }
+    } catch (err) { wx.showToast({ title: '操作失败', icon: 'none' }); }
     finally { this.setData({ saving: false }); }
   },
 
