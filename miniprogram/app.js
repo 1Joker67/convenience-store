@@ -13,6 +13,9 @@ App({
 
     // 检查本地登录缓存
     this.checkLogin();
+
+    // 自动取消超时未支付订单
+    wx.cloud.callFunction({ name: 'cleanupOrders' }).catch(() => {});
   },
 
   globalData: {

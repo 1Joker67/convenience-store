@@ -17,6 +17,8 @@ Page({
 
   onShow() {
     this.loadOrders();
+    // 触发清理超时订单
+    wx.cloud.callFunction({ name: 'cleanupOrders' }).catch(() => {});
   },
 
   // 加载订单
