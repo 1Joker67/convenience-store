@@ -101,8 +101,17 @@ Page({
       this.setData({ saving: true });
       const result = await api.changePassword(oldPwd, newPwd);
       if (result.success) {
-        wx.showToast({ title: '密码修改成功', icon: 'success' });
         this.setData({ showPwdForm: false });
+        wx.showModal({
+          title: '修改成功',
+          content: '密码已修改，请退出重新登录',
+          showCancel: false,
+          confirmText: '知道了',
+          success: () => {
+            auth.adminLogout();
+            wx.switchTab({ url: '/pages/admin/login/login' });
+          }
+        });
       } else {
         wx.showToast({ title: result.message || '修改失败', icon: 'none' });
       }
