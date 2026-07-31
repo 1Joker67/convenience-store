@@ -78,6 +78,11 @@ function getSettings() {
   return callFunction('manageSettings', { action: 'get' });
 }
 
+// 清理过期订单
+function cleanupOrders() {
+  return callFunction('cleanupOrders', {});
+}
+
 module.exports = {
   callFunction,
   getProducts,
@@ -87,5 +92,6 @@ module.exports = {
   manageProduct,
   manageCategory,
   manageSettings,
-  getSettings
+  getSettings,
+  cleanupOrders
 };

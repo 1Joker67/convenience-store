@@ -15,4 +15,8 @@
   border: 1px solid #e8e8e8; border-radius: 6px;
   background-color: #f9f9f9;
 }
+.retention-input {
+  width: 60px; height: 36px; text-align: center; font-size: 18px; font-weight: 600;
+  color: #07c160; border: 1px solid #e8e8e8; border-radius: 6px; margin: 0 6px;
+}
 .loading { text-align: center; padding: 40px; color: #999; }

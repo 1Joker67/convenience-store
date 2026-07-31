@@ -6,6 +6,7 @@ Page({
   data: {
     announcement: '',
     serviceTime: { start: '08:00', end: '22:00', enabled: false },
+    retentionDays: 30,
     loading: true,
     saving: false
   },
@@ -23,6 +24,7 @@ Page({
         this.setData({
           announcement: result.data.announcement || '',
           serviceTime: result.data.service_time || { start: '08:00', end: '22:00', enabled: false },
+          retentionDays: parseInt(result.data.order_retention_days) || 30,
           loading: false
         });
       }
@@ -35,6 +37,7 @@ Page({
   onAnnouncementInput(e) { this.setData({ announcement: e.detail.value }); },
   onStartChange(e) { this.setData({ 'serviceTime.start': e.detail.value }); },
   onEndChange(e) { this.setData({ 'serviceTime.end': e.detail.value }); },
+  onRetentionInput(e) { this.setData({ retentionDays: parseInt(e.detail.value) || 30 }); },
 
   onToggleService(e) {
     this.setData({ 'serviceTime.enabled': e.detail.value });
@@ -67,6 +70,16 @@ Page({
     const page = e.currentTarget.dataset.page;
     const url = '/pages/admin/' + page + '/' + page;
     wx.redirectTo({ url });
+  },
+
+  // 保存订单保留天数
+  async onSaveRetention() {
+    try {
+      this.setData({ saving: true });
+      await api.manageSettings('update', 'order_retention_days', this.data.retentionDays);
+      wx.showToast({ title: '已保存', icon: 'success' });
+    } catch (err) { wx.showToast({ title: '保存失败', icon: 'none' }); }
+    finally { this.setData({ saving: false }); }
   },
 
   onLogout() {

@@ -1,0 +1,7 @@
+{
+  "name": "cleanupOrders",
+  "version": "1.0.0",
+  "description": "清理过期订单",
+  "main": "index.js",
+  "dependencies": { "wx-server-sdk": "~2.6.3" }
+}

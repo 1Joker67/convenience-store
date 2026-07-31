@@ -58,10 +58,14 @@ Page({
     } catch (err) { /* 静默 */ }
   },
 
-  // 完整加载
+  // 完整加载（含自动清理）
   async loadOrders() {
     try {
       this.setData({ loading: true, newOrderCount: 0, lastCheckTime: new Date().toISOString() });
+      // 自动清理过期订单
+      api.cleanupOrders().then(r => {
+        if (r.deleted > 0) console.log('已清理' + r.deleted + '条过期订单');
+      }).catch(() => {});
       const result = await api.getOrders({ all: true, status: this.data.statusFilter || undefined });
       this.setData({ orders: result.data || [], loading: false });
     } catch (err) { this.setData({ loading: false }); }

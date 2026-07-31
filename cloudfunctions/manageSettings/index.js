@@ -11,7 +11,7 @@ async function requireAdmin(openid) {
 }
 
 // 允许的 key 白名单
-const ALLOWED_KEYS = ['announcement', 'service_time'];
+const ALLOWED_KEYS = ['announcement', 'service_time', 'order_retention_days', 'admin_subscribe'];
 
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();

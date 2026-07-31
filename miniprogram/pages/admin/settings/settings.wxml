@@ -54,5 +54,23 @@
         </text>
       </view>
     </view>
+
+    <!-- 订单保留天数 -->
+    <view class="section">
+      <view class="section-title">
+        <text>🗑️ 订单自动清理</text>
+        <view class="btn btn-small btn-primary" bindtap="onSaveRetention">{{saving ? '保存中' : '保存'}}</view>
+      </view>
+      <view class="card">
+        <view class="flex-row" style="align-items:center;">
+          <text style="font-size:14px;">保留</text>
+          <input class="retention-input" type="number" value="{{retentionDays}}" bindinput="onRetentionInput" />
+          <text style="font-size:14px;">天后自动删除</text>
+        </view>
+        <text class="text-sm text-light" style="margin-top:8px;display:block;">
+          已支付和已取消的订单超过天数后自动清理，待支付订单不会被删除
+        </text>
+      </view>
+    </view>
   </view>
 </view>
