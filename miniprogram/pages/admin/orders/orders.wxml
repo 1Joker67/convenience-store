@@ -2,15 +2,19 @@
 <view class="page">
   <!-- 顶部导航 -->
   <view class="nav-bar">
-    <view class="nav-item active"><text>📋 订单</text></view>
+    <view class="nav-item active">
+      <text>📋 订单</text>
+      <text class="new-badge" wx:if="{{newOrderCount > 0}}">{{newOrderCount}}</text>
+    </view>
     <view class="nav-item" bindtap="onNavTap" data-page="products"><text>📦 商品</text></view>
     <view class="nav-item" bindtap="onNavTap" data-page="categories"><text>📂 分类</text></view>
     <view class="nav-item" bindtap="onNavTap" data-page="settings"><text>⚙️ 设置</text></view>
     <text class="logout-btn" bindtap="onLogout">退出</text>
   </view>
 
-  <!-- 状态筛选 -->
+  <!-- 状态筛选 + 订阅 -->
   <view class="header-bar">
+    <view class="subscribe-btn" bindtap="onSubscribe">🔔 订阅通知</view>
     <view class="flex-1">
       <view
         wx:for="{{['', 'pending', 'paid', 'cancelled']}}"

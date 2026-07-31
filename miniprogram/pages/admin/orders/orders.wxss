@@ -59,6 +59,15 @@
   margin-top: 6px;
 }
 
+.new-badge {
+  min-width: 18px; height: 18px; background: #ee0a24; color: #fff;
+  font-size: 10px; border-radius: 9px; text-align: center; line-height: 18px;
+  margin-left: 4px; padding: 0 5px; display: inline-block; vertical-align: top;
+}
+.subscribe-btn {
+  font-size: 12px; color: #07c160; padding: 4px 10px;
+  border: 1px solid #07c160; border-radius: 12px; margin-right: 8px; white-space: nowrap;
+}
 .loading {
   text-align: center;
   padding: 40px;

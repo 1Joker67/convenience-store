@@ -62,6 +62,29 @@ exports.main = async (event) => {
       }
     });
 
+    // 尝试发送订阅消息通知管理员
+    try {
+      const settingsRes = await db.collection('settings').where({ key: 'admin_subscribe' }).get();
+      if (settingsRes.data.length > 0 && settingsRes.data[0].value && settingsRes.data[0].value.subscribed) {
+        const adminRes = await db.collection('users').where({ role: 'admin' }).get();
+        for (const admin of adminRes.data) {
+          try {
+            await cloud.openapi.subscribeMessage.send({
+              touser: admin.openid,
+              templateId: settingsRes.data[0].value.templateId,
+              data: {
+                thing1: { value: (validatedItems[0]?.name || '商品') + '等' + validatedItems.length + '件' },
+                amount2: { value: '¥' + computedTotal },
+                thing3: { value: String(order.address || '').slice(0, 20) },
+                phrase4: { value: '待处理' }
+              },
+              page: 'pages/admin/orders/orders'
+            });
+          } catch (e) { /* 发送失败不阻塞下单 */ }
+        }
+      }
+    } catch (e) { /* 通知失败不阻塞下单 */ }
+
     return { success: true, orderId: result._id, totalAmount: computedTotal, message: '下单成功' };
   } catch (err) {
     console.error('submitOrder error:', err);
