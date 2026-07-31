@@ -15,6 +15,7 @@ Page({
     form: {
       name: '',
       price: '',
+      stock: '',
       categoryId: '',
       image: '',
       status: 'on'
@@ -71,7 +72,7 @@ Page({
       showForm: true,
       editMode: false,
       editId: '',
-      form: { name: '', price: '', categoryId: '', image: '', status: 'on' }
+      form: { name: '', price: '', stock: '', categoryId: '', image: '', status: 'on' }
     });
   },
 
@@ -87,6 +88,7 @@ Page({
       form: {
         name: product.name,
         price: String(product.price),
+        stock: String(product.stock !== undefined ? product.stock : ''),
         categoryId: product.categoryId,
         image: product.image || '',
         status: product.status
@@ -98,9 +100,8 @@ Page({
   onNameInput(e) {
     this.setData({ 'form.name': e.detail.value });
   },
-  onPriceInput(e) {
-    this.setData({ 'form.price': e.detail.value });
-  },
+  onPriceInput(e) { this.setData({ 'form.price': e.detail.value }); },
+  onStockInput(e) { this.setData({ 'form.stock': e.detail.value }); },
   onCategoryChange(e) {
     const idx = e.detail.value;
     const cat = this.data.categories[idx];
@@ -157,10 +158,12 @@ Page({
     }
 
     try {
+      const { stock } = this.data.form;
       const action = this.data.editMode ? 'update' : 'add';
       const data = {
         name: name.trim(),
         price: Number(price),
+        stock: stock !== '' ? parseInt(stock) : undefined,
         categoryId,
         image,
         status

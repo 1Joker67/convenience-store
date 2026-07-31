@@ -26,6 +26,18 @@ async function cancelExpiredPending() {
       await db.collection('orders').doc(order._id).update({
         data: { status: 'cancelled', updatedAt: new Date().toISOString() }
       });
+      // 恢复库存
+      for (const item of (order.items || [])) {
+        try {
+          const prod = await db.collection('products').doc(item.productId).get();
+          if (prod.data) {
+            const curStock = prod.data.stock !== undefined ? prod.data.stock : 999;
+            await db.collection('products').doc(item.productId).update({
+              data: { stock: curStock + item.quantity, updatedAt: new Date().toISOString() }
+            });
+          }
+        } catch (e) {}
+      }
       cancelled++;
     } catch (e) {}
   }

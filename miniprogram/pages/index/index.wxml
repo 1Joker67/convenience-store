@@ -47,8 +47,12 @@
           <view class="product-info">
             <text class="product-name text-ellipsis">{{item.name}}</text>
             <view class="product-bottom">
-              <text class="price">{{item.price}}</text>
-              <view class="btn-add" data-product="{{item}}" bindtap="onAddToCart">+</view>
+              <view>
+                <text class="price">{{item.price}}</text>
+                <text class="stock-text" wx:if="{{item.stock !== undefined && item.stock <= 0}}">已售罄</text>
+                <text class="stock-text low" wx:elif="{{item.stock !== undefined && item.stock < 10}}">仅剩{{item.stock}}件</text>
+              </view>
+              <view class="btn-add {{item.stock !== undefined && item.stock <= 0 ? 'disabled' : ''}}" data-product="{{item}}" bindtap="onAddToCart">+</view>
             </view>
           </view>
         </view>

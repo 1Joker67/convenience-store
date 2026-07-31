@@ -194,9 +194,10 @@
 .cart-checkout-btn.disabled {
   background-color: #ccc;
 }
-.min-amount {
-  font-size: 12px; color: #ee0a24; margin-right: 8px;
-}
+.min-amount { font-size: 12px; color: #ee0a24; margin-right: 8px; }
+.btn-add.disabled { background: #ccc; }
+.stock-text { font-size: 10px; color: #ee0a24; display: block; }
+.stock-text.low { color: #ff976a; }
 
 /* ========== 购物车弹出层 ========== */
 .cart-overlay {

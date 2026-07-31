@@ -12,13 +12,13 @@ async function requireAdmin(openid) {
 
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
-  const { action, productId, name, price, image, categoryId, status } = event;
+  const { action, productId, name, price, image, categoryId, status, stock } = event;
 
   try {
     switch (action) {
       case 'list': return await listProducts();
-      case 'add': await requireAdmin(OPENID); return await addProduct(name, price, image, categoryId, status);
-      case 'update': await requireAdmin(OPENID); return await updateProduct(productId, name, price, image, categoryId, status);
+      case 'add': await requireAdmin(OPENID); return await addProduct(name, price, image, categoryId, status, stock);
+      case 'update': await requireAdmin(OPENID); return await updateProduct(productId, name, price, image, categoryId, status, stock);
       case 'delete': await requireAdmin(OPENID); return await deleteProduct(productId);
       default: return { success: false, error: '未知操作' };
     }
@@ -33,17 +33,17 @@ async function listProducts() {
   const r = await db.collection('products').orderBy('createdAt', 'desc').limit(200).get();
   return { success: true, data: r.data };
 }
-async function addProduct(name, price, image, categoryId, status) {
+async function addProduct(name, price, image, categoryId, status, stock) {
   if (!name || price == null || !categoryId) return { success: false, error: '参数不全' };
   const p = Number(price);
   if (isNaN(p) || p <= 0) return { success: false, error: '价格无效' };
-  if (!/^[a-zA-Z0-9+/=]+$/.test(categoryId) && categoryId.length < 16) return { success: false, error: '分类ID无效' };
+  const s = stock !== undefined ? Math.max(0, parseInt(stock) || 0) : 999;
   const r = await db.collection('products').add({
-    data: { name: name.trim(), price: p, image: image || '', categoryId, status: status || 'on', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+    data: { name: name.trim(), price: p, stock: s, image: image || '', categoryId, status: status || 'on', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
   });
   return { success: true, data: { _id: r._id } };
 }
-async function updateProduct(productId, name, price, image, categoryId, status) {
+async function updateProduct(productId, name, price, image, categoryId, status, stock) {
   if (!productId) return { success: false, error: '缺少商品ID' };
   const d = { updatedAt: new Date().toISOString() };
   if (name !== undefined) d.name = name.trim();
@@ -51,6 +51,7 @@ async function updateProduct(productId, name, price, image, categoryId, status) 
   if (image !== undefined) d.image = image;
   if (categoryId !== undefined) d.categoryId = categoryId;
   if (status !== undefined && ['on', 'off'].includes(status)) d.status = status;
+  if (stock !== undefined) d.stock = Math.max(0, parseInt(stock) || 0);
   await db.collection('products').doc(productId).update({ data: d });
   return { success: true };
 }

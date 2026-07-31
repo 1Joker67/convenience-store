@@ -125,6 +125,11 @@ Page({
 
   onAddToCart(e) {
     const product = e.currentTarget.dataset.product;
+    const stock = product.stock !== undefined ? product.stock : 999;
+    if (stock <= 0) {
+      wx.showToast({ title: '该商品已售罄', icon: 'none' });
+      return;
+    }
     cart.addToCart(product);
     this.refreshCart();
     wx.showToast({ title: '已加入购物车', icon: 'success', duration: 800 });

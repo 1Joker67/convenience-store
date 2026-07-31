@@ -12,9 +12,11 @@ exports.main = async (event) => {
     return { success: false, error: '订单数据为空' };
   }
   try {
-    // 服务端重新计算价格：逐项查商品表
+    // 服务端重新计算价格 + 检查库存
     let computedTotal = 0;
     const validatedItems = [];
+    const stockUpdates = []; // 待扣减库存记录
+
     for (const item of order.items) {
       if (!item.productId || !item.quantity || item.quantity < 1) {
         return { success: false, error: '商品参数错误' };
@@ -23,8 +25,14 @@ exports.main = async (event) => {
       if (!prodRes.data || prodRes.data.status !== 'on') {
         return { success: false, error: '商品「' + (item.name || item.productId) + '」已下架或不存在' };
       }
-      const realPrice = prodRes.data.price;
+
+      const stock = prodRes.data.stock !== undefined ? prodRes.data.stock : 999;
       const qty = Math.min(parseInt(item.quantity) || 1, 999);
+      if (stock < qty) {
+        return { success: false, error: '「' + prodRes.data.name + '」库存不足，仅剩' + stock + '件' };
+      }
+
+      const realPrice = prodRes.data.price;
       validatedItems.push({
         productId: item.productId,
         name: prodRes.data.name,
@@ -33,6 +41,7 @@ exports.main = async (event) => {
         image: prodRes.data.image || ''
       });
       computedTotal += realPrice * qty;
+      stockUpdates.push({ id: item.productId, newStock: stock - qty });
     }
 
     computedTotal = Math.round(computedTotal * 100) / 100;
@@ -45,6 +54,15 @@ exports.main = async (event) => {
     const userInfo = userRes.data.length > 0
       ? { nickName: userRes.data[0].nickName, avatarUrl: userRes.data[0].avatarUrl }
       : { nickName: '匿名用户', avatarUrl: '' };
+
+    // 扣减库存
+    for (const s of stockUpdates) {
+      try {
+        await db.collection('products').doc(s.id).update({
+          data: { stock: s.newStock, updatedAt: new Date().toISOString() }
+        });
+      } catch (e) { /* 不影响下单 */ }
+    }
 
     const result = await db.collection('orders').add({
       data: {
