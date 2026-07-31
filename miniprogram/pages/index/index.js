@@ -15,6 +15,7 @@ Page({
     cartTotalAmount: 0,
     cartCanCheckout: false,
     checkoutBtnText: '去结算',
+    isAdmin: false,
     // 公告 & 服务时间
     announcement: '',
     inServiceTime: true,
@@ -29,6 +30,7 @@ Page({
 
   onShow() {
     this.refreshCart();
+    this.setData({ isAdmin: getApp().globalData.adminLoggedIn });
   },
 
   // 加载设置
@@ -109,8 +111,10 @@ Page({
     this.loadProducts(categoryId);
   },
 
-  onSearchTap() {
-    wx.navigateTo({ url: '/pages/search/search' });
+  onSearchTap() { wx.navigateTo({ url: '/pages/search/search' }); },
+
+  onAdminTap() {
+    wx.navigateTo({ url: '/pages/admin/login/login' });
   },
 
   // ========== 购物车操作 ==========

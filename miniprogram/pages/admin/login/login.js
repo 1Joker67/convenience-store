@@ -5,7 +5,9 @@ Page({
   data: { password: '', loading: false, errorMsg: '' },
 
   onShow() {
-    if (auth.isAdminLoggedIn()) { wx.switchTab({ url: '/pages/admin/login/login' }); }
+    if (auth.isAdminLoggedIn()) {
+      wx.redirectTo({ url: '/pages/admin/orders/orders' });
+    }
   },
 
   onInput(e) { this.setData({ password: e.detail.value, errorMsg: '' }); },

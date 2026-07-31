@@ -43,12 +43,6 @@
         "iconPath": "images/tab-orders.png",
         "selectedIconPath": "images/tab-orders-active.png"
       },
-      {
-        "pagePath": "pages/admin/login/login",
-        "text": "管理",
-        "iconPath": "images/tab-admin.png",
-        "selectedIconPath": "images/tab-admin-active.png"
-      }
     ]
   },
   "sitemapLocation": "sitemap.json",

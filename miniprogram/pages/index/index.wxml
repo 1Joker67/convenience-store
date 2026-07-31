@@ -5,12 +5,15 @@
     <text>📢 {{announcement}}</text>
   </view>
 
-  <!-- 顶部搜索栏 -->
-  <view class="search-bar" bindtap="onSearchTap">
-    <view class="search-input">
-      <text class="search-icon">🔍</text>
-      <text class="search-placeholder">搜索商品</text>
+  <!-- 顶部栏 -->
+  <view class="top-bar">
+    <view class="search-bar" bindtap="onSearchTap">
+      <view class="search-input">
+        <text class="search-icon">🔍</text>
+        <text class="search-placeholder">搜索商品</text>
+      </view>
     </view>
+    <view class="admin-entry" wx:if="{{isAdmin}}" bindtap="onAdminTap">⚙</view>
   </view>
 
   <!-- 主体：左分类 + 右商品 -->
