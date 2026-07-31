@@ -5,20 +5,37 @@ const db = cloud.database();
 
 async function requireAdmin(openid) {
   const res = await db.collection('users').where({ openid }).get();
-  if (!res.data.length || res.data[0].role !== 'admin') {
-    throw new Error('无操作权限');
-  }
+  if (!res.data.length || res.data[0].role !== 'admin') throw new Error('无操作权限');
 }
 
-// 验证密码
-async function verifyPassword(input) {
-  // 数据库密码优先
-  const res = await db.collection('admin_config').where({ key: 'admin_password' }).get();
-  if (res.data.length > 0) {
-    return input === res.data[0].value;
-  }
-  // 兜底密码
-  return input === 'tf123456';
+// 从数据库读密码，失败则用兜底密码
+async function getStoredPassword() {
+  try {
+    const res = await db.collection('admin_config').where({ key: 'admin_password' }).get();
+    if (res.data.length > 0 && res.data[0].value) {
+      return res.data[0].value;
+    }
+  } catch (e) { console.log('读密码失败:', e.message); }
+  return 'tf123456';
+}
+
+// 保存密码到数据库
+async function savePassword(pwd) {
+  try {
+    const res = await db.collection('admin_config').where({ key: 'admin_password' }).get();
+    if (res.data.length > 0) {
+      await db.collection('admin_config').doc(res.data[0]._id).update({
+        data: { value: pwd, updatedAt: new Date().toISOString() }
+      });
+    } else {
+      await db.collection('admin_config').add({
+        data: { key: 'admin_password', value: pwd, createdAt: new Date().toISOString() }
+      });
+    }
+    // 验证写入
+    const saved = await getStoredPassword();
+    return saved === pwd;
+  } catch (e) { console.log('写密码失败:', e.message); return false; }
 }
 
 exports.main = async (event) => {
@@ -26,40 +43,25 @@ exports.main = async (event) => {
   const { action, password, newPassword } = event;
 
   try {
-    switch (action) {
+    switch (action || 'login') {
       case 'login': {
         if (!password) return { success: false, message: '请输入密码' };
-        const ok = await verifyPassword(password);
-        if (!ok) return { success: false, message: '密码错误' };
-
+        const stored = await getStoredPassword();
+        if (password !== stored) return { success: false, message: '密码错误' };
         await promoteToAdmin(OPENID);
         return { success: true, message: '验证成功' };
       }
 
       case 'changePassword': {
-        if (!password || !newPassword) {
-          return { success: false, message: '请填写旧密码和新密码' };
-        }
-        if (newPassword.length < 6) {
-          return { success: false, message: '新密码至少6位' };
-        }
-
+        if (!password || !newPassword) return { success: false, message: '请填写旧密码和新密码' };
+        if (newPassword.length < 6) return { success: false, message: '新密码至少6位' };
         await requireAdmin(OPENID);
 
-        const ok = await verifyPassword(password);
-        if (!ok) return { success: false, message: '旧密码错误' };
+        const stored = await getStoredPassword();
+        if (password !== stored) return { success: false, message: '旧密码错误' };
 
-        // 更新数据库中的密码
-        const res = await db.collection('admin_config').where({ key: 'admin_password' }).get();
-        if (res.data.length > 0) {
-          await db.collection('admin_config').doc(res.data[0]._id).update({
-            data: { value: newPassword, updatedAt: new Date().toISOString() }
-          });
-        } else {
-          await db.collection('admin_config').add({
-            data: { key: 'admin_password', value: newPassword, updatedAt: new Date().toISOString() }
-          });
-        }
+        const ok = await savePassword(newPassword);
+        if (!ok) return { success: false, message: '密码保存失败，请重试' };
 
         return { success: true, message: '密码修改成功' };
       }
