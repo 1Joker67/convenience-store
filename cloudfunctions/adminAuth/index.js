@@ -21,21 +21,16 @@ async function getStoredPassword() {
 
 // 保存密码到数据库
 async function savePassword(pwd) {
-  try {
-    const res = await db.collection('admin_config').where({ key: 'admin_password' }).get();
-    if (res.data.length > 0) {
-      await db.collection('admin_config').doc(res.data[0]._id).update({
-        data: { value: pwd, updatedAt: new Date().toISOString() }
-      });
-    } else {
-      await db.collection('admin_config').add({
-        data: { key: 'admin_password', value: pwd, createdAt: new Date().toISOString() }
-      });
-    }
-    // 验证写入
-    const saved = await getStoredPassword();
-    return saved === pwd;
-  } catch (e) { console.log('写密码失败:', e.message); return false; }
+  const res = await db.collection('admin_config').where({ key: 'admin_password' }).get();
+  if (res.data.length > 0) {
+    await db.collection('admin_config').doc(res.data[0]._id).update({
+      data: { value: pwd, updatedAt: new Date().toISOString() }
+    });
+  } else {
+    await db.collection('admin_config').add({
+      data: { key: 'admin_password', value: pwd, createdAt: new Date().toISOString() }
+    });
+  }
 }
 
 exports.main = async (event) => {
@@ -60,9 +55,7 @@ exports.main = async (event) => {
         const stored = await getStoredPassword();
         if (password !== stored) return { success: false, message: '旧密码错误' };
 
-        const ok = await savePassword(newPassword);
-        if (!ok) return { success: false, message: '密码保存失败，请重试' };
-
+        await savePassword(newPassword);
         return { success: true, message: '密码修改成功' };
       }
 
