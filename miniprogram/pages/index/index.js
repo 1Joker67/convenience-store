@@ -3,6 +3,9 @@ const api = require('../../utils/api.js');
 const cart = require('../../utils/cart.js');
 
 Page({
+  onShareAppMessage() {
+    return { title: '便利店下单，轻松选购', path: '/pages/index/index' };
+  },
   data: {
     categories: [],
     products: [],

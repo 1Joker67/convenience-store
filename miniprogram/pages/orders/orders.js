@@ -3,6 +3,9 @@ const api = require('../../utils/api.js');
 const auth = require('../../utils/auth.js');
 
 Page({
+  onShareAppMessage() {
+    return { title: '便利店下单，轻松选购', path: '/pages/index/index' };
+  },
   data: {
     orders: [],
     loading: true,
@@ -17,70 +20,35 @@ Page({
 
   onShow() {
     this.loadOrders();
-    // 触发清理超时订单
     wx.cloud.callFunction({ name: 'cleanupOrders' }).catch(() => {});
   },
 
-  // 加载订单
   async loadOrders() {
     try {
       this.setData({ loading: true });
-
-      // 确保已登录
-      if (!auth.isLoggedIn()) {
-        await auth.login();
-      }
-
+      if (!auth.isLoggedIn()) { await auth.login(); }
       const params = {};
-      if (this.data.statusFilter) {
-        params.status = this.data.statusFilter;
-      }
-
+      if (this.data.statusFilter) { params.status = this.data.statusFilter; }
       const result = await api.getOrders(params);
-      this.setData({
-        orders: result.data || [],
-        loading: false
-      });
-    } catch (err) {
-      this.setData({ loading: false });
-    }
+      this.setData({ orders: result.data || [], loading: false });
+    } catch (err) { this.setData({ loading: false }); }
   },
 
-  // 筛选状态
   onFilterTap(e) {
     const status = e.currentTarget.dataset.status;
-    this.setData({ statusFilter: status }, () => {
-      this.loadOrders();
-    });
+    this.setData({ statusFilter: status }, () => this.loadOrders());
   },
 
-  // 展开订单详情
   onOrderTap(e) {
     const order = e.currentTarget.dataset.order;
-    wx.showModal({
-      title: '订单详情',
-      content: this.buildOrderDetail(order),
-      showCancel: false,
-      confirmText: '知道了'
-    });
+    let d = '下单时间：' + (order.createdAt || '未知') + '\n';
+    d += '状态：' + this.st(order.status) + '\n';
+    d += '地址：' + order.address + '\n电话：' + order.phone + '\n';
+    d += '备注：' + (order.remark || '无') + '\n----------\n';
+    order.items.forEach(i => { d += i.name + ' ×' + i.quantity + ' ¥' + i.price + '\n'; });
+    d += '合计：¥' + order.totalAmount;
+    wx.showModal({ title: '订单详情', content: d, showCancel: false, confirmText: '关闭' });
   },
 
-  buildOrderDetail(order) {
-    let detail = `下单时间：${order.createdAt || '未知'}\n`;
-    detail += `状态：${this.statusText(order.status)}\n`;
-    detail += `地址：${order.address}\n`;
-    detail += `电话：${order.phone}\n`;
-    detail += `备注：${order.remark || '无'}\n`;
-    detail += '----------\n';
-    order.items.forEach(item => {
-      detail += `${item.name} ×${item.quantity}  ¥${item.price}\n`;
-    });
-    detail += `合计：¥${order.totalAmount}`;
-    return detail;
-  },
-
-  statusText(status) {
-    const map = { pending: '待支付', paid: '已支付', cancelled: '已取消' };
-    return map[status] || status;
-  }
+  st(s) { return { pending: '待支付', paid: '已支付', cancelled: '已取消' }[s] || s; }
 });
