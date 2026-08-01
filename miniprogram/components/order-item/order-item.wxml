@@ -1,0 +1,17 @@
+<view class="card order-card" bindtap="onTap">
+  <view class="flex-between mb-10">
+    <text class="text-sm text-secondary">{{order.createdAt}}</text>
+    <text class="tag {{order.status === 'paid' ? 'tag-green' : order.status === 'cancelled' ? 'tag-gray' : 'tag-red'}}">
+      {{order.status === 'pending' ? '待支付' : order.status === 'paid' ? '已支付' : '已取消'}}
+    </text>
+  </view>
+  <view wx:for="{{order.items}}" wx:for-item="goods" wx:key="productId" class="goods-row">
+    <text class="flex-1 text-sm text-ellipsis">{{goods.name}} ×{{goods.quantity}}</text>
+    <text class="price text-sm">{{goods.price * goods.quantity}}</text>
+  </view>
+  <view class="divider"></view>
+  <view class="flex-between">
+    <text class="text-sm text-secondary">共 {{order.items.length}} 件</text>
+    <text class="price">合计：{{order.totalAmount}}</text>
+  </view>
+</view>

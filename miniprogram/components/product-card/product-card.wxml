@@ -1,0 +1,15 @@
+<view class="product-card" bindtap="onTap">
+  <image wx:if="{{product.image}}" src="{{product.image}}" class="image" mode="aspectFill" />
+  <view wx:else class="image-placeholder">📦</view>
+  <view class="info">
+    <text class="name text-ellipsis">{{product.name}}</text>
+    <view class="bottom">
+      <view>
+        <text class="price">{{product.price}}</text>
+        <text wx:if="{{showStock && product.stock !== undefined && product.stock <= 0}}" class="stock soldout">已售罄</text>
+        <text wx:elif="{{showStock && product.stock !== undefined && product.stock < 10}}" class="stock low">仅剩{{product.stock}}件</text>
+      </view>
+      <view class="btn-add {{product.stock !== undefined && product.stock <= 0 ? 'disabled' : ''}}" catchtap="onAdd">+</view>
+    </view>
+  </view>
+</view>

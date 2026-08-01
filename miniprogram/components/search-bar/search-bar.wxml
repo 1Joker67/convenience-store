@@ -1,0 +1,6 @@
+<view class="search-bar" bindtap="onTap">
+  <view class="search-input">
+    <text class="icon">🔍</text>
+    <text class="placeholder">搜索商品</text>
+  </view>
+</view>

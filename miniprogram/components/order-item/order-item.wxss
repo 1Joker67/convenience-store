@@ -1,0 +1,2 @@
+.order-card { padding: 12px 15px; }
+.goods-row { display: flex; align-items: center; padding: 4px 0; }

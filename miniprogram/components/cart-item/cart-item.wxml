@@ -1,0 +1,11 @@
+<view class="item">
+  <view class="info flex-1">
+    <text class="name text-ellipsis">{{item.name}}</text>
+    <text class="price">{{item.price}}</text>
+  </view>
+  <view class="quantity">
+    <view class="qty-btn" catchtap="onDecrease">−</view>
+    <text class="qty-num">{{item.quantity}}</text>
+    <view class="qty-btn plus" catchtap="onIncrease">+</view>
+  </view>
+</view>
