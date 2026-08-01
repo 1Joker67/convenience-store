@@ -15,7 +15,6 @@ exports.main = async (event) => {
     // 服务端重新计算价格 + 检查库存
     let computedTotal = 0;
     const validatedItems = [];
-    const stockUpdates = []; // 待扣减库存记录
 
     for (const item of order.items) {
       if (!item.productId || !item.quantity || item.quantity < 1) {
@@ -41,7 +40,6 @@ exports.main = async (event) => {
         image: prodRes.data.image || ''
       });
       computedTotal += realPrice * qty;
-      stockUpdates.push({ id: item.productId, newStock: stock - qty });
     }
 
     computedTotal = Math.round(computedTotal * 100) / 100;
@@ -55,11 +53,12 @@ exports.main = async (event) => {
       ? { nickName: userRes.data[0].nickName, avatarUrl: userRes.data[0].avatarUrl }
       : { nickName: '匿名用户', avatarUrl: '' };
 
-    // 扣减库存
-    for (const s of stockUpdates) {
+    // 原子扣减库存
+    const _ = db.command;
+    for (const item of validatedItems) {
       try {
-        await db.collection('products').doc(s.id).update({
-          data: { stock: s.newStock, updatedAt: new Date().toISOString() }
+        await db.collection('products').doc(item.productId).update({
+          data: { stock: _.inc(-item.quantity), updatedAt: new Date().toISOString() }
         });
       } catch (e) { /* 不影响下单 */ }
     }
