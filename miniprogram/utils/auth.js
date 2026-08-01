@@ -34,7 +34,8 @@ async function adminLogin(password) {
   return result;
 }
 
-function adminLogout() {
+async function adminLogout() {
+  try { await wx.cloud.callFunction({ name: 'adminAuth', data: { action: 'logout' } }); } catch (e) {}
   getApp().logoutAdmin();
 }
 
